@@ -1,0 +1,28 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package mycput.ac.za.studenttimetable.dao;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import mycput.ac.za.studenttimetable.connection.DBConnection;
+
+/**
+ *
+ * @author mogamatyaseenkannemeyer
+ */
+public class AdminDAO {
+    
+     private Connection con;
+
+    public AdminDAO() {
+        try {
+            this.con = DBConnection.derbyConnection();
+            System.out.println("✅ Database connection successful for CourseDAO!");
+        } catch (SQLException e) {
+            System.out.println("❌ CONNECTION FAILED in CourseDAO: " + e.getMessage());
+        }
+    }
+    
+}
