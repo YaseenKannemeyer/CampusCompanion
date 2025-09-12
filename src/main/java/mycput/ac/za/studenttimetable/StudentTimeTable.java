@@ -12,6 +12,7 @@ public class StudentTimeTable extends JFrame {
 
     private JPanel contentPanel;
     private JTable timetableTable;
+    
 
     private StudentSignupForm signupForm;
     private LoginForm loginForm;
@@ -194,4 +195,21 @@ public SidebarPanel getSidebar() {
         table.setDefaultRenderer(Object.class, renderer);
         return table;
     }
+    public void showLoginPanel(LoginForm loginForm) {
+    // Remove everything from the frame
+    getContentPane().removeAll();
+    getContentPane().setLayout(new BorderLayout());
+
+    // Add the login form to the center
+    getContentPane().add(loginForm, BorderLayout.CENTER);
+
+    // Optionally reset sidebar and contentPanel references
+    contentPanel = null;  // Clear main content
+    sidebar = null;       // Clear sidebar if present
+
+    // Refresh the frame
+    getContentPane().revalidate();
+    getContentPane().repaint();
+}
+
 }

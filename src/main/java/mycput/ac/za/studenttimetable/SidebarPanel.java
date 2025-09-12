@@ -32,13 +32,20 @@ public class SidebarPanel extends JPanel {
         setPreferredSize(new Dimension(180, 0));
         setBorder(new EmptyBorder(10, 0, 10, 0));
 
+        // 🔹 Add Logo Panel at the top
+        add(createLogoPanel());
+        add(Box.createRigidArea(new Dimension(0, 20))); // spacing below logo
+
+        // 🔹 Sidebar items
         String[] items = {"Dashboard", "Timetable", "Subjects", "Notifications", "Settings"};
         for (String item : items) {
             JPanel itemPanel = createSidebarItem(item, contentPanel, table);
             itemPanels.add(itemPanel);
             add(itemPanel);
 
-            if (item.equals("Dashboard")) setActiveItem(itemPanel);
+            if (item.equals("Dashboard")) {
+                setActiveItem(itemPanel);
+            }
         }
 
         add(Box.createVerticalGlue());
@@ -51,19 +58,43 @@ public class SidebarPanel extends JPanel {
         System.out.println("SidebarPanel.setCurrentStudent(): " + studentId + ", " + studentGroup);
     }
 
-   public void initSubjectsPanel() {
-    if (currentStudentId == null || currentStudentGroup == null) {
-        System.out.println("Student info not set yet!");
-        return;
+    public void initSubjectsPanel() {
+        if (currentStudentId == null || currentStudentGroup == null) {
+            System.out.println("Student info not set yet!");
+            return;
+        }
+        if (subjectsPanel == null) {
+            subjectsPanel = new Subjects(connectionProvider, currentStudentId, currentStudentGroup);
+        } else {
+            subjectsPanel.setStudent(currentStudentId, currentStudentGroup);
+        }
     }
-    if (subjectsPanel == null) {
-        subjectsPanel = new Subjects(connectionProvider, currentStudentId, currentStudentGroup);
-    } else {
-        subjectsPanel.setStudent(currentStudentId, currentStudentGroup);
+
+    // --- Logo Panel ---
+    private JPanel createLogoPanel() {
+        JPanel logoPanel = new JPanel();
+        logoPanel.setBackground(BG_DEFAULT);
+        logoPanel.setMaximumSize(new Dimension(180, 80));
+        logoPanel.setLayout(new BorderLayout());
+
+        try {
+            // Load logo from resources
+            ImageIcon logoIcon = new ImageIcon(getClass().getResource("/icons/Logo.png"));
+            Image scaled = logoIcon.getImage().getScaledInstance(120, 60, Image.SCALE_SMOOTH);
+
+            JLabel logoLabel = new JLabel(new ImageIcon(scaled));
+            logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+            logoPanel.add(logoLabel, BorderLayout.CENTER);
+        } catch (Exception e) {
+            // Fallback if logo not found
+            JLabel fallback = new JLabel("Student Timetable", SwingConstants.CENTER);
+            fallback.setFont(new Font("Poppins", Font.BOLD, 16));
+            logoPanel.add(fallback, BorderLayout.CENTER);
+        }
+
+        return logoPanel;
     }
-}
-
-
 
     // --- Sidebar GUI ---
     private JPanel createSidebarItem(String name, JPanel contentPanel, JTable table) {
@@ -78,9 +109,22 @@ public class SidebarPanel extends JPanel {
         itemPanel.add(label);
 
         itemPanel.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { if (itemPanel != activeItemPanel) itemPanel.setBackground(BG_HOVER);}
-            @Override public void mouseExited(MouseEvent e) { if (itemPanel != activeItemPanel) itemPanel.setBackground(BG_DEFAULT);}
-            @Override public void mouseClicked(MouseEvent e) {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (itemPanel != activeItemPanel) {
+                    itemPanel.setBackground(BG_HOVER);
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (itemPanel != activeItemPanel) {
+                    itemPanel.setBackground(BG_DEFAULT);
+                }
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
                 setActiveItem(itemPanel);
                 renderContent(name, contentPanel, table);
             }
@@ -90,7 +134,9 @@ public class SidebarPanel extends JPanel {
     }
 
     private void setActiveItem(JPanel newActive) {
-        if (activeItemPanel != null) activeItemPanel.setBackground(BG_DEFAULT);
+        if (activeItemPanel != null) {
+            activeItemPanel.setBackground(BG_DEFAULT);
+        }
         activeItemPanel = newActive;
         activeItemPanel.setBackground(BG_ACTIVE);
     }
@@ -98,22 +144,22 @@ public class SidebarPanel extends JPanel {
     private void renderContent(String item, JPanel contentPanel, JTable table) {
         contentPanel.removeAll();
         switch (item) {
-            case "Dashboard" -> contentPanel.add(new DashboardPanel(), BorderLayout.CENTER);
-            case "Timetable" -> contentPanel.add(new JScrollPane(table), BorderLayout.CENTER);
-          case "Subjects" -> {
-    if (subjectsPanel == null) {
-        // Always pass the current student info
-        subjectsPanel = new Subjects(connectionProvider, currentStudentId, currentStudentGroup);
-    } else {
-        // Update student info if already created
-        subjectsPanel.setStudent(currentStudentId, currentStudentGroup);
-    }
-    contentPanel.add(subjectsPanel, BorderLayout.CENTER);
-}
-
-
-            case "Settings" -> contentPanel.add(new SettingsPanel(), BorderLayout.CENTER);
-            case "Notifications" -> contentPanel.add(new NotificationsPanel(), BorderLayout.CENTER);
+            case "Dashboard" ->
+                contentPanel.add(new DashboardPanel(), BorderLayout.CENTER);
+            case "Timetable" ->
+                contentPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+            case "Subjects" -> {
+                if (subjectsPanel == null) {
+                    subjectsPanel = new Subjects(connectionProvider, currentStudentId, currentStudentGroup);
+                } else {
+                    subjectsPanel.setStudent(currentStudentId, currentStudentGroup);
+                }
+                contentPanel.add(subjectsPanel, BorderLayout.CENTER);
+            }
+            case "Settings" ->
+                contentPanel.add(new SettingsPanel(), BorderLayout.CENTER);
+            case "Notifications" ->
+                contentPanel.add(new NotificationsPanel(), BorderLayout.CENTER);
         }
         contentPanel.revalidate();
         contentPanel.repaint();
@@ -123,6 +169,7 @@ public class SidebarPanel extends JPanel {
         JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         logoutPanel.setMaximumSize(new Dimension(180, 50));
         logoutPanel.setBackground(BG_DEFAULT);
+        logoutPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         JLabel logoutLabel = new JLabel("↩️ Logout");
         logoutLabel.setFont(new Font("Poppins", Font.PLAIN, 14));
@@ -130,14 +177,49 @@ public class SidebarPanel extends JPanel {
         logoutPanel.add(logoutLabel);
 
         logoutPanel.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { logoutPanel.setBackground(BG_HOVER);}
-            @Override public void mouseExited(MouseEvent e) { logoutPanel.setBackground(BG_DEFAULT);}
-            @Override public void mouseClicked(MouseEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(null, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) System.exit(0);
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                logoutPanel.setBackground(BG_HOVER);
             }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                logoutPanel.setBackground(BG_DEFAULT);
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Get reference to the main JFrame first
+                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(SidebarPanel.this);
+
+                // Show confirm dialog centered on the JFrame
+                int confirm = JOptionPane.showConfirmDialog(
+                        topFrame, // <-- now centers on the full frame
+                        "Are you sure you want to log out?",
+                        "Confirm Logout",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    if (topFrame instanceof StudentTimeTable) {
+                        StudentTimeTable mainFrame = (StudentTimeTable) topFrame;
+
+                        // Clear session info
+                        Session.setStudent(null, null);
+
+                        // Show login form
+                        LoginForm loginForm = new LoginForm(mainFrame, connectionProvider);
+                        mainFrame.showLoginPanel(loginForm);
+
+                        // Optionally reset sidebar selection
+                        setActiveItem(null); // no active item
+                    }
+                }
+            }
+
         });
 
         return logoutPanel;
     }
+
 }
