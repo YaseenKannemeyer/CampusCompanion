@@ -9,12 +9,14 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StudentSignupForm extends JPanel {
 
     private JTextField txtStudentId, txtFirstName, txtLastName, txtEmail, txtPhoneNumber;
     private JPasswordField txtPassword, txtConfirmPassword;
-    private JComboBox<String> cmbGroupID;
+    private JComboBox<String> cmbGroupID, cmbYear;
     private JButton btnSignup, btnLogin;
     private StudentTimeTable parent;
 
@@ -68,8 +70,33 @@ public class StudentSignupForm extends JPanel {
         formPanel.add(Box.createRigidArea(new Dimension(0, 25)));
 
         // Fields
-        cmbGroupID = new JComboBox<>(new String[]{"1G", "1F", "2G", "2E"});
+        // Year combo box (drives group combo box)
+        cmbYear = new JComboBox<>(new String[]{
+            "First year", "Second year", "Third year"
+        });
+        cmbYear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        // Group combo box (changes based on year)
+        cmbGroupID = new JComboBox<>();
         cmbGroupID.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        // Map year -> groups
+        Map<String, String[]> yearToGroups = new HashMap<>();
+        yearToGroups.put("First year", new String[]{"1A", "1B", "1C", "1D", "1E", "1F", "1G"});
+        yearToGroups.put("Second year", new String[]{"2A", "2B", "2C", "2D", "2E", "2F", "2G", "2H", "2I", "2J", "2K"});
+        yearToGroups.put("Third year", new String[]{"3A", "3B", "3C", "3D", "3E"});
+
+        // Listener: update groups when year changes
+        cmbYear.addActionListener(e -> {
+            String selectedYear = (String) cmbYear.getSelectedItem();
+            cmbGroupID.setModel(new DefaultComboBoxModel<>(
+                    yearToGroups.getOrDefault(selectedYear, new String[]{})
+            ));
+        });
+
+        // Set default to first year
+        cmbYear.setSelectedIndex(0);
+
         txtStudentId = createInputField("Student ID");
         txtFirstName = createInputField("First Name");
         txtLastName = createInputField("Last Name");
@@ -79,6 +106,8 @@ public class StudentSignupForm extends JPanel {
         txtConfirmPassword = createPasswordField("Confirm Password");
 
         // Add fields with spacing
+        formPanel.add(cmbYear);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         formPanel.add(cmbGroupID);
         formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         formPanel.add(txtStudentId);
@@ -107,8 +136,13 @@ public class StudentSignupForm extends JPanel {
 
         // Hover effect
         btnSignup.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { btnSignup.setBackground(new Color(60, 110, 170)); }
-            public void mouseExited(MouseEvent e) { btnSignup.setBackground(new Color(70, 130, 180)); }
+            public void mouseEntered(MouseEvent e) {
+                btnSignup.setBackground(new Color(60, 110, 170));
+            }
+
+            public void mouseExited(MouseEvent e) {
+                btnSignup.setBackground(new Color(70, 130, 180));
+            }
         });
 
         btnSignup.addActionListener(e -> handleSignup());
@@ -124,7 +158,9 @@ public class StudentSignupForm extends JPanel {
         btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         btnLogin.addActionListener(e -> {
-            if (parent != null) parent.slideToLogin();
+            if (parent != null) {
+                parent.slideToLogin();
+            }
         });
 
         formPanel.add(btnLogin);
@@ -154,62 +190,62 @@ public class StudentSignupForm extends JPanel {
         return field;
     }
 
-   private void handleSignup() {
-    // --- Gather input values ---
-    String studentId = txtStudentId.getText().trim();
-    String groupId = (String) cmbGroupID.getSelectedItem();
-    String firstName = txtFirstName.getText().trim();
-    String lastName = txtLastName.getText().trim();
-    String email = txtEmail.getText().trim();
-    String phone = txtPhoneNumber.getText().trim();
-    String password = new String(txtPassword.getPassword());
-    String confirmPassword = new String(txtConfirmPassword.getPassword());
+    private void handleSignup() {
+        // --- Gather input values ---
+        String studentId = txtStudentId.getText().trim();
+        String groupId = (String) cmbGroupID.getSelectedItem();
+        String firstName = txtFirstName.getText().trim();
+        String lastName = txtLastName.getText().trim();
+        String email = txtEmail.getText().trim();
+        String phone = txtPhoneNumber.getText().trim();
+        String password = new String(txtPassword.getPassword());
+        String confirmPassword = new String(txtConfirmPassword.getPassword());
 
-    // --- Validation ---
-    if (studentId.isEmpty() || groupId.isEmpty() || firstName.isEmpty() ||
-        lastName.isEmpty() || email.isEmpty() || phone.isEmpty() ||
-        password.isEmpty() || confirmPassword.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    if (!password.equals(confirmPassword)) {
-        JOptionPane.showMessageDialog(this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-    // --- Create StudentDomain object ---
-    // UserID will be generated automatically inside DAO, so we pass an empty string
-    StudentDomain student = new StudentDomain(
-        studentId,   // StudentID
-        "",          // UserID will be auto-generated
-        groupId,
-        firstName,
-        lastName,
-        phone,
-        email
-    );
-
-    // --- Save to database ---
-    try {
-        StudentDAO dao = new StudentDAO();
-        boolean success = dao.saveStudent(student, password); // pass password separately
-
-        if (success) {
-            JOptionPane.showMessageDialog(this, "Signup successful! Welcome, " + firstName);
-            clearForm();
-            if (parent != null) parent.slideToLogin();
-        } else {
-            JOptionPane.showMessageDialog(this, "Signup failed. Try again.", "Error", JOptionPane.ERROR_MESSAGE);
+        // --- Validation ---
+        if (studentId.isEmpty() || groupId.isEmpty() || firstName.isEmpty()
+                || lastName.isEmpty() || email.isEmpty() || phone.isEmpty()
+                || password.isEmpty() || confirmPassword.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        if (!password.equals(confirmPassword)) {
+            JOptionPane.showMessageDialog(this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // --- Create StudentDomain object ---
+        // UserID will be generated automatically inside DAO, so we pass an empty string
+        StudentDomain student = new StudentDomain(
+                studentId, // StudentID
+                "", // UserID will be auto-generated
+                groupId,
+                firstName,
+                lastName,
+                phone,
+                email
+        );
+
+        // --- Save to database ---
+        try {
+            StudentDAO dao = new StudentDAO();
+            boolean success = dao.saveStudent(student, password); // pass password separately
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Signup successful! Welcome, " + firstName);
+                clearForm();
+                if (parent != null) {
+                    parent.slideToLogin();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Signup failed. Try again.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
-}
-
-
 
     private void clearForm() {
         txtStudentId.setText("");
@@ -224,21 +260,27 @@ public class StudentSignupForm extends JPanel {
 
     // Rounded border for button
     private static class RoundedBorder extends AbstractBorder {
+
         private int radius;
-        public RoundedBorder(int radius) { this.radius = radius; }
+
+        public RoundedBorder(int radius) {
+            this.radius = radius;
+        }
+
         public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
             g.setColor(new Color(70, 130, 180));
-            g.drawRoundRect(x, y, width-1, height-1, radius, radius);
+            g.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
         }
     }
 
     // Drop shadow for form panel
     private static class DropShadowBorder extends AbstractBorder {
+
         public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setColor(new Color(0, 0, 0, 30));
             for (int i = 0; i < 5; i++) {
-                g2.drawRoundRect(x+i, y+i, w-2*i-1, h-2*i-1, 20, 20);
+                g2.drawRoundRect(x + i, y + i, w - 2 * i - 1, h - 2 * i - 1, 20, 20);
             }
             g2.dispose();
         }
