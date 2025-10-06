@@ -50,6 +50,15 @@
           <mainClass>mycput.ac.za.studenttimetable.AppLauncher</mainClass>
         </configuration>
       </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <compilerArgs>
+            <arg>--enable-preview</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <properties>

@@ -1,6 +1,5 @@
 package mycput.ac.za.studenttimetable;
 
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -12,52 +11,42 @@ public class StudentTimeTable extends JFrame {
 
     private JPanel contentPanel;
     private JTable timetableTable;
-    
 
     private StudentSignupForm signupForm;
     private LoginForm loginForm;
     private Subjects.ConnectionProvider connectionProvider;
     private SidebarPanel sidebar;
 
-
-
     private final int SLIDE_STEP = 20; // pixels per animation tick
     private final int TIMER_DELAY = 5; // ms per tick
 
-   public StudentTimeTable() {
-    super("📅 Weekly Timetable");
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setSize(1100, 700);
-    setLocationRelativeTo(null);
-    setLayout(null); // for sliding login/signup panels
+    public StudentTimeTable() {
+        super("📅 Weekly Timetable");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1100, 700);
+        setLocationRelativeTo(null);
+        setLayout(null); // for sliding login/signup panels
 
-    // Initialize main content panel and timetable
-    contentPanel = new JPanel(new BorderLayout());
-    timetableTable = createTimetableTable();
+        // Initialize main content panel and timetable
+        contentPanel = new JPanel(new BorderLayout());
+        timetableTable = createTimetableTable();
 
-    // Initialize connection provider BEFORE using it in SidebarPanel
-    this.connectionProvider = new Subjects.ConnectionProvider() {
-    @Override
-    public Connection get() throws java.sql.SQLException {
-        return DBConnection.derbyConnection();
+        // Initialize connection provider BEFORE using it in SidebarPanel
+        this.connectionProvider = () -> DBConnection.derbyConnection();
+
+        // Initialize forms
+        signupForm = new StudentSignupForm(this);
+        loginForm = new LoginForm(this, connectionProvider);
+
+        // Set bounds for sliding effect
+        signupForm.setBounds(0, 0, getWidth(), getHeight());
+        loginForm.setBounds(getWidth(), 0, getWidth(), getHeight());
+
+        add(signupForm);
+        add(loginForm);
+
+        setVisible(true);
     }
-};
-
-
-    // Initialize forms
-    signupForm = new StudentSignupForm(this);
-    loginForm = new LoginForm(this, connectionProvider);
-
-    // Set bounds for sliding effect
-    signupForm.setBounds(0, 0, getWidth(), getHeight());
-    loginForm.setBounds(getWidth(), 0, getWidth(), getHeight());
-
-    add(signupForm);
-    add(loginForm);
-
-    setVisible(true);
-}
-
 
     // ------------------- Sliding Animations -------------------
 
@@ -100,50 +89,27 @@ public class StudentTimeTable extends JFrame {
     }
 
     // ------------------- Main Dashboard -------------------
-    public void showMainDashboard(JPanel panel) {
-    getContentPane().removeAll();
-    getContentPane().setLayout(new BorderLayout());
+    public void showMainDashboard() {
+        getContentPane().removeAll();
+        setLayout(new BorderLayout());
 
-    // Recreate content panel with BorderLayout
-    contentPanel = new JPanel(new BorderLayout());
+        // Keep a single contentPanel
+        contentPanel.setLayout(new BorderLayout());
 
-    // Initialize and store sidebar in field
-    sidebar = new SidebarPanel(contentPanel, timetableTable, connectionProvider);
-    add(sidebar, BorderLayout.WEST);
+        // Initialize sidebar once
+        sidebar = new SidebarPanel(contentPanel, timetableTable, connectionProvider);
+        add(sidebar, BorderLayout.WEST);
 
-    // Add the main panel (DashboardPanel, Subjects, or any other panel)
-    contentPanel.add(panel, BorderLayout.CENTER);
-    add(contentPanel, BorderLayout.CENTER);
+        // Add content panel in center
+        add(contentPanel, BorderLayout.CENTER);
 
-    getContentPane().revalidate();
-    getContentPane().repaint();
-}
-    
-public SidebarPanel getSidebar() {
-    return sidebar;
-}
+        getContentPane().revalidate();
+        getContentPane().repaint();
+    }
 
-
-
-    public void showTimetableView() {
-    contentPanel.removeAll();
-    contentPanel.setLayout(new BorderLayout()); // IMPORTANT
-
-    JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    header.setBackground(Color.WHITE);
-    JLabel title = new JLabel("📘 Weekly Timetable");
-    title.setFont(new Font("SansSerif", Font.BOLD, 20));
-    header.add(title);
-
-    JScrollPane scrollPane = new JScrollPane(timetableTable);
-    scrollPane.setBorder(BorderFactory.createEmptyBorder());
-
-    contentPanel.add(header, BorderLayout.NORTH);
-    contentPanel.add(scrollPane, BorderLayout.CENTER);
-
-    contentPanel.revalidate();
-    contentPanel.repaint();
-}
+    public SidebarPanel getSidebar() {
+        return sidebar;
+    }
 
     // ------------------- Timetable Table -------------------
     private JTable createTimetableTable() {
@@ -195,21 +161,18 @@ public SidebarPanel getSidebar() {
         table.setDefaultRenderer(Object.class, renderer);
         return table;
     }
+
+    // ------------------- Login Panel -------------------
     public void showLoginPanel(LoginForm loginForm) {
-    // Remove everything from the frame
-    getContentPane().removeAll();
-    getContentPane().setLayout(new BorderLayout());
+        getContentPane().removeAll();
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(loginForm, BorderLayout.CENTER);
 
-    // Add the login form to the center
-    getContentPane().add(loginForm, BorderLayout.CENTER);
+        // Clear content references
+        contentPanel = new JPanel(new BorderLayout()); // reinitialize to avoid null
+        sidebar = null;
 
-    // Optionally reset sidebar and contentPanel references
-    contentPanel = null;  // Clear main content
-    sidebar = null;       // Clear sidebar if present
-
-    // Refresh the frame
-    getContentPane().revalidate();
-    getContentPane().repaint();
-}
-
+        getContentPane().revalidate();
+        getContentPane().repaint();
+    }
 }

@@ -159,4 +159,40 @@ public class StudentDAO {
         }
         return group;
     }
+    
+    // =========================
+// GET FULL STUDENT PROFILE
+// =========================
+public StudentDomain getStudentProfile(String studentId) throws SQLException {
+    String sql = """
+        SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName, 
+               s.PhoneNumber, s.Email, g.GroupName, c.CourseName
+        FROM Student s
+        JOIN StudentGroup g ON s.GroupID = g.GroupID
+        JOIN Course c ON g.CourseID = c.CourseID
+        WHERE s.StudentID = ?
+    """;
+
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, studentId);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                StudentDomain student = new StudentDomain(
+                    rs.getString("StudentID"),
+                    rs.getString("UserID"),
+                    rs.getString("GroupID"),
+                    rs.getString("FirstName"),
+                    rs.getString("LastName"),
+                    rs.getString("PhoneNumber"),
+                    rs.getString("Email")
+                );
+                student.setCourseName(rs.getString("CourseName"));
+                student.setGroupName(rs.getString("GroupName"));
+                return student;
+            }
+        }
+    }
+    return null;
+}
+
 }

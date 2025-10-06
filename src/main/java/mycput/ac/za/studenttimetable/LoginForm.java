@@ -137,7 +137,6 @@ public class LoginForm extends JPanel {
     }
 
   private void handleLogin() {
-    JOptionPane.showMessageDialog(this, "Login clicked!");
     String email = txtEmail.getText().trim();
     String password = new String(txtPassword.getPassword());
 
@@ -157,19 +156,21 @@ public class LoginForm extends JPanel {
             return;
         }
 
-        // ✅ Store correct studentId and groupId
+        // Store correct studentId and groupId
         Session.setStudent(student.getStudentID(), student.getGroupID());
 
-        // Show success
+        // Show success message
         JOptionPane.showMessageDialog(this, "Login successful! Welcome, " + student.getFirstName() + ".");
 
         if (parent != null) {
-            // ✅ Load Dashboard first, not Subjects
-            DashboardPanel dashboard = new DashboardPanel(connectionProvider, student.getStudentID(), student.getGroupID());
-            parent.showMainDashboard(dashboard);
+            // Show the main dashboard layout
+            parent.showMainDashboard();
 
-            // ✅ Pass into sidebar
+            // Update sidebar with current student info
             parent.getSidebar().setCurrentStudent(student.getStudentID(), student.getGroupID());
+
+            // Render dashboard now that student info is set
+            parent.getSidebar().renderContent("Dashboard");
         }
 
     } catch (SQLException ex) {

@@ -2,82 +2,119 @@ package mycput.ac.za.studenttimetable.domain;
 
 public class StudentDomain {
 
-    private String StudentID;
-    private String UserID;
-    private String GroupID;
-    private String FirstName;
-    private String LastName;
-    private String PhoneNumber;
-    private String Email;
+    private String studentID;
+    private String userID;
+    private String groupID;
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String email;
+    private String courseName;
+    private String groupName;
 
     public StudentDomain() {
     }
 
-    public StudentDomain(String StudentID, String UserID, String GroupID, 
-                         String FirstName, String LastName, 
-                         String PhoneNumber, String Email) {
-        this.StudentID = StudentID;
-        this.UserID = UserID;
-        this.GroupID = GroupID;
-        this.FirstName = FirstName;
-        this.LastName = LastName;
-        this.PhoneNumber = PhoneNumber;
-        this.Email = Email;
+    public StudentDomain(String studentID, String userID, String groupID,
+                         String firstName, String lastName,
+                         String phoneNumber, String email,
+                         String courseName, String groupName) {
+        this.studentID = studentID;
+        this.userID = userID;
+        this.groupID = groupID;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.courseName = courseName;
+        this.groupName = groupName;
     }
 
+    // Shorter constructor (without course/group name)
+    public StudentDomain(String studentID, String userID, String groupID,
+                         String firstName, String lastName,
+                         String phoneNumber, String email) {
+        this(studentID, userID, groupID, firstName, lastName, phoneNumber, email, null, null);
+    }
+
+    // Getters and Setters
     public String getStudentID() {
-        return StudentID;
+        return studentID;
     }
 
-    public void setStudentID(String StudentID) {
-        this.StudentID = StudentID;
+    public void setStudentID(String studentID) {
+        this.studentID = studentID;
     }
 
     public String getUserID() {
-        return UserID;
+        return userID;
     }
 
-    public void setUserID(String UserID) {
-        this.UserID = UserID;
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 
     public String getGroupID() {
-        return GroupID;
+        return groupID;
     }
 
-    public void setGroupID(String GroupID) {
-        this.GroupID = GroupID;
+    public void setGroupID(String groupID) {
+        this.groupID = groupID;
     }
 
     public String getFirstName() {
-        return FirstName;
+        return firstName;
     }
 
-    public void setFirstName(String FirstName) {
-        this.FirstName = FirstName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
-        return LastName;
+        return lastName;
     }
 
-    public void setLastName(String LastName) {
-        this.LastName = LastName;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getPhoneNumber() {
-        return PhoneNumber;
+        return phoneNumber;
     }
 
-    public void setPhoneNumber(String PhoneNumber) {
-        this.PhoneNumber = PhoneNumber;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getEmail() {
-        return Email;
+        return email;
     }
 
-    public void setEmail(String Email) {
-        this.Email = Email;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "Student[ID=%s, Name=%s %s, Email=%s, Group=%s, Course=%s]",
+                studentID, firstName, lastName, email, groupName, courseName
+        );
     }
 }
