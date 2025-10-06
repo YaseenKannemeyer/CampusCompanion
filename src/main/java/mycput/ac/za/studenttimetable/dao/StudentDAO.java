@@ -8,6 +8,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StudentDAO {
 
@@ -59,8 +61,7 @@ public class StudentDAO {
             // Generate next UserID
             String nextUserID = "U001";
             String maxIdSQL = "SELECT MAX(UserID) AS maxId FROM UserAccount";
-            try (PreparedStatement ps = con.prepareStatement(maxIdSQL);
-                 ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = con.prepareStatement(maxIdSQL); ResultSet rs = ps.executeQuery()) {
                 if (rs.next() && rs.getString("maxId") != null) {
                     String maxId = rs.getString("maxId");
                     int num = Integer.parseInt(maxId.substring(1)) + 1;
@@ -93,7 +94,11 @@ public class StudentDAO {
             return true;
 
         } catch (SQLException e) {
-            try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
 
             StringBuilder sb = new StringBuilder();
             sb.append("SQLState: ").append(e.getSQLState()).append("\n");
@@ -103,7 +108,11 @@ public class StudentDAO {
                     "Database error", JOptionPane.ERROR_MESSAGE);
             return false;
         } finally {
-            try { con.setAutoCommit(true); } catch (SQLException ex) { ex.printStackTrace(); }
+            try {
+                con.setAutoCommit(true);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -111,10 +120,13 @@ public class StudentDAO {
     // LOGIN: verify and fetch student
     // =========================
     public StudentDomain loginStudent(String email, String password) throws SQLException {
-        String sql = "SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName, s.PhoneNumber, s.Email, u.PasswordHash " +
-                     "FROM UserAccount u " +
-                     "JOIN Student s ON u.UserID = s.UserID " +
-                     "WHERE u.Email=? AND u.Role='STUDENT'";
+        String sql = """
+            SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName, 
+                   s.PhoneNumber, s.Email, u.PasswordHash
+            FROM UserAccount u
+            JOIN Student s ON u.UserID = s.UserID
+            WHERE u.Email=? AND u.Role='STUDENT'
+        """;
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, email);
@@ -122,7 +134,6 @@ public class StudentDAO {
                 if (rs.next()) {
                     String storedHash = rs.getString("PasswordHash");
                     if (hashPassword(password).equals(storedHash)) {
-                        // Successful login
                         return new StudentDomain(
                                 rs.getString("StudentID"),
                                 rs.getString("UserID"),
@@ -132,44 +143,37 @@ public class StudentDAO {
                                 rs.getString("PhoneNumber"),
                                 rs.getString("Email")
                         );
-                    } else {
-                        System.out.println("Password mismatch for: " + email);
                     }
-                } else {
-                    System.out.println("No user found for email: " + email);
                 }
             }
         }
         return null;
     }
 
-    // =========================
-    // GET STUDENT GROUP
-    // =========================
-    public String getStudentGroupByEmail(String email) throws SQLException {
-        String group = null;
-        String sql = "SELECT GroupID FROM Student WHERE Email=?";
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    group = rs.getString("GroupID");
-                }
-            }
-        }
-        return group;
-    }
-    
-    // =========================
+   // =========================
 // GET FULL STUDENT PROFILE
 // =========================
 public StudentDomain getStudentProfile(String studentId) throws SQLException {
     String sql = """
-        SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName, 
-               s.PhoneNumber, s.Email, g.GroupName, c.CourseName
+        SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName,
+               s.PhoneNumber, s.Email,
+               g.GroupName, c.CourseName
         FROM Student s
-        JOIN StudentGroup g ON s.GroupID = g.GroupID
-        JOIN Course c ON g.CourseID = c.CourseID
+        LEFT JOIN StudentGroup sg ON s.GroupID = sg.GroupID
+        LEFT JOIN Course c ON sg.CourseID = c.CourseID
+        LEFT JOIN StudentGroup g ON s.GroupID = g.GroupID
+        LEFT JOIN StudentGroup sg2 ON s.GroupID = sg2.GroupID
+        LEFT JOIN StudentGroup g2 ON s.GroupID = g2.GroupID
+    """;
+
+    // Simplify: use correct joins
+    sql = """
+        SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName,
+               s.PhoneNumber, s.Email,
+               sg.GroupName, c.CourseName
+        FROM Student s
+        LEFT JOIN StudentGroup sg ON s.GroupID = sg.GroupID
+        LEFT JOIN Course c ON sg.CourseID = c.CourseID
         WHERE s.StudentID = ?
     """;
 
@@ -177,17 +181,16 @@ public StudentDomain getStudentProfile(String studentId) throws SQLException {
         ps.setString(1, studentId);
         try (ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
-                StudentDomain student = new StudentDomain(
-                    rs.getString("StudentID"),
-                    rs.getString("UserID"),
-                    rs.getString("GroupID"),
-                    rs.getString("FirstName"),
-                    rs.getString("LastName"),
-                    rs.getString("PhoneNumber"),
-                    rs.getString("Email")
-                );
-                student.setCourseName(rs.getString("CourseName"));
-                student.setGroupName(rs.getString("GroupName"));
+                StudentDomain student = new StudentDomain();
+                student.setStudentID(rs.getString("StudentID"));
+                student.setUserID(rs.getString("UserID"));
+                student.setGroupID(rs.getString("GroupID"));
+                student.setFirstName(rs.getString("FirstName"));
+                student.setLastName(rs.getString("LastName"));
+                student.setPhoneNumber(rs.getString("PhoneNumber"));
+                student.setEmail(rs.getString("Email"));
+                student.setGroupName(rs.getString("GroupName")); // new
+                student.setCourseName(rs.getString("CourseName")); // new
                 return student;
             }
         }
@@ -195,4 +198,69 @@ public StudentDomain getStudentProfile(String studentId) throws SQLException {
     return null;
 }
 
+
+    // =========================
+    // GET ALL STUDENTS
+    // =========================
+    public List<StudentDomain> getAllStudents() throws SQLException {
+        List<StudentDomain> students = new ArrayList<>();
+        String sql = """
+            SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName, 
+                   s.PhoneNumber, s.Email, c.CourseName
+            FROM Student s
+            LEFT JOIN StudentGroup g ON s.GroupID = g.GroupID
+            LEFT JOIN Course c ON g.CourseID = c.CourseID
+        """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                StudentDomain student = new StudentDomain(
+                        rs.getString("StudentID"),
+                        rs.getString("UserID"),
+                        rs.getString("GroupID"),
+                        rs.getString("FirstName"),
+                        rs.getString("LastName"),
+                        rs.getString("PhoneNumber"),
+                        rs.getString("Email")
+                );
+                student.setCourseName(rs.getString("CourseName"));
+                students.add(student);
+            }
+        }
+        return students;
+    }
+
+    // =========================
+    // GET STUDENT BY EMAIL
+    // =========================
+    public StudentDomain getStudentByEmail(String email) throws SQLException {
+        String sql = """
+            SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName,
+                   s.PhoneNumber, s.Email, c.CourseName
+            FROM Student s
+            LEFT JOIN StudentGroup g ON s.GroupID = g.GroupID
+            LEFT JOIN Course c ON g.CourseID = c.CourseID
+            WHERE s.Email = ?
+        """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    StudentDomain student = new StudentDomain(
+                            rs.getString("StudentID"),
+                            rs.getString("UserID"),
+                            rs.getString("GroupID"),
+                            rs.getString("FirstName"),
+                            rs.getString("LastName"),
+                            rs.getString("PhoneNumber"),
+                            rs.getString("Email")
+                    );
+                    student.setCourseName(rs.getString("CourseName"));
+                    return student;
+                }
+            }
+        }
+        return null;
+    }
 }

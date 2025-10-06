@@ -5,9 +5,12 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import mycput.ac.za.studenttimetable.dao.StudentDAO;
+import mycput.ac.za.studenttimetable.domain.StudentDomain;
 
 public class SidebarPanel extends JPanel {
 
@@ -84,19 +87,29 @@ public class SidebarPanel extends JPanel {
     }
 
     public void setCurrentStudent(String studentId, String studentGroup) {
-        this.currentStudentId = studentId;
-        this.currentStudentGroup = studentGroup;
+    this.currentStudentId = studentId;
+    this.currentStudentGroup = studentGroup;
 
-        if (dashboardPanel != null) {
-            dashboardPanel.setStudent(studentId, studentGroup);
+    try {
+        // Fetch StudentDomain from DAO
+        StudentDAO studentDAO = new StudentDAO();
+        StudentDomain student = studentDAO.getStudentProfile(studentId);
+
+        if (dashboardPanel != null && student != null) {
+            dashboardPanel.setStudent(student); // pass StudentDomain
         }
 
-        if (subjectsPanel != null) {
-            subjectsPanel.setStudent(studentId, studentGroup);
-        }
+        if (subjectsPanel != null) { subjectsPanel.setStudent(studentId, studentGroup); }
 
         System.out.println("SidebarPanel.setCurrentStudent(): " + studentId + ", " + studentGroup);
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Failed to load student info: " + e.getMessage(),
+                "Database Error", JOptionPane.ERROR_MESSAGE);
     }
+}
+
 
     private JPanel createLogoPanel() {
         JPanel logoPanel = new JPanel();
@@ -158,18 +171,31 @@ public class SidebarPanel extends JPanel {
     }
 
     public void renderContent(String item) {
-        CardLayout cl = (CardLayout) contentPanel.getLayout();
+    CardLayout cl = (CardLayout) contentPanel.getLayout();
 
+    try {
         // Update student info if needed
-        switch (item) {
-            case "Dashboard" -> dashboardPanel.setStudent(currentStudentId, currentStudentGroup);
-            case "Subjects" -> subjectsPanel.setStudent(currentStudentId, currentStudentGroup);
-        }
+        if (currentStudentId != null) {
+            StudentDAO studentDAO = new StudentDAO();
+            StudentDomain student = studentDAO.getStudentProfile(currentStudentId);
 
-        cl.show(contentPanel, item); // this switches the visible panel
-        contentPanel.revalidate();
-        contentPanel.repaint();
+            switch (item) {
+                case "Dashboard" -> {
+                    if (dashboardPanel != null && student != null) {
+                        dashboardPanel.setStudent(student);
+                    }
+                }
+                case "Subjects" -> subjectsPanel.setStudent(currentStudentId, currentStudentGroup);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+
+    cl.show(contentPanel, item); // switch visible panel
+    contentPanel.revalidate();
+    contentPanel.repaint();
+}
 
     private JPanel createLogoutButton() {
         JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));

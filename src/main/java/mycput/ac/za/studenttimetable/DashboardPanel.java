@@ -4,16 +4,18 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.sql.SQLException;
+import mycput.ac.za.studenttimetable.dao.StudentDAO;
+import mycput.ac.za.studenttimetable.domain.StudentDomain;
 
 public class DashboardPanel extends JPanel {
 
     private String studentId;
     private String groupId;
+    
     private final Subjects.ConnectionProvider connectionProvider;
 
-    // Components that need updating
-    private JLabel nameLabel;
-    private JLabel groupLabel;
+    private JLabel nameLabel, groupLabel, studentNumberLabel, courseLabel;
 
     public DashboardPanel() {
         this(null, null, null);
@@ -25,274 +27,363 @@ public class DashboardPanel extends JPanel {
         this.groupId = groupId;
 
         setLayout(new BorderLayout());
-        setBackground(Color.decode("#F8F9FB"));
+        setBackground(new Color(28, 66, 138));
 
-        // 🔹 Header with gradient banner
-        add(createHeaderBanner(), BorderLayout.NORTH);
-
-        // 🔹 Main Content
+        add(createHeaderBanner(studentId), BorderLayout.NORTH);
         add(createMainContent(), BorderLayout.CENTER);
-
-        // 🔹 Footer (Quick Links)
         add(createFooterButtons(), BorderLayout.SOUTH);
     }
 
-    // ------------------- HEADER BANNER -------------------
-    private JPanel createHeaderBanner() {
-        JPanel header = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+   // ------------------- HEADER -------------------
+private JPanel createHeaderBanner(String studentId) {
+    FrostedGlassPanel header = new FrostedGlassPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                GradientPaint gradient = new GradientPaint(0, 0,
-                        new Color(52, 143, 80),
-                        getWidth(), getHeight(),
-                        new Color(86, 180, 211));
-                g2.setPaint(gradient);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight() + 40, 0, 40);
-            }
-        };
+            GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(58, 123, 213, 120),
+                    0, getHeight(), new Color(28, 66, 138, 120)
+            );
+            g2.setPaint(gradient);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+            g2.dispose();
+        }
+    };
+    header.setLayout(new BorderLayout());
+    header.setPreferredSize(new Dimension(0, 150));
+    header.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-        header.setLayout(new BorderLayout());
-        header.setPreferredSize(new Dimension(0, 130));
-        header.setBorder(new EmptyBorder(20, 30, 15, 30));
-        header.setOpaque(false);
+    // Info panel inside header
+    JPanel studentInfoPanel = new JPanel();
+    studentInfoPanel.setOpaque(false);
+    studentInfoPanel.setLayout(new BoxLayout(studentInfoPanel, BoxLayout.Y_AXIS));
 
-        // Student info area
-        JPanel studentInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
-        studentInfoPanel.setOpaque(false);
+    // Class fields for labels
+    nameLabel = new JLabel("Name: Loading...");
+    studentNumberLabel = new JLabel("Student Number: Loading...");
+    groupLabel = new JLabel("Group: Loading...");
+    courseLabel = new JLabel("Course: Loading...");
 
-        // Avatar
-        JLabel avatar = new JLabel("\uD83D\uDC64"); // simple emoji avatar
-        avatar.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 50));
-        avatar.setForeground(Color.WHITE);
-
-        // Student text info
-        nameLabel = new JLabel("Welcome, " + (studentId != null ? studentId : "Student"));
-        nameLabel.setFont(new Font("Poppins", Font.BOLD, 22));
-        nameLabel.setForeground(Color.WHITE);
-
-        groupLabel = new JLabel("Group: " + (groupId != null ? groupId : "-"));
-        groupLabel.setFont(new Font("Poppins", Font.PLAIN, 14));
-        groupLabel.setForeground(Color.WHITE);
-
-        JPanel textPanel = new JPanel();
-        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
-        textPanel.setOpaque(false);
-        textPanel.add(nameLabel);
-        textPanel.add(Box.createVerticalStrut(5));
-        textPanel.add(groupLabel);
-
-        studentInfoPanel.add(avatar);
-        studentInfoPanel.add(textPanel);
-
-        // Title on right side
-        JLabel title = new JLabel("Student Dashboard");
-        title.setFont(new Font("Poppins", Font.BOLD, 26));
-        title.setForeground(Color.WHITE);
-        title.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        header.add(studentInfoPanel, BorderLayout.WEST);
-        header.add(title, BorderLayout.EAST);
-
-        return header;
+    // Style labels
+    for (JLabel lbl : new JLabel[]{nameLabel, studentNumberLabel, groupLabel, courseLabel}) {
+        lbl.setFont(new Font("Poppins", Font.BOLD, 16));
+        lbl.setForeground(Color.WHITE);
+        studentInfoPanel.add(lbl);
+        studentInfoPanel.add(Box.createVerticalStrut(5));
     }
+
+    header.add(studentInfoPanel, BorderLayout.WEST);
+
+    // Load student info asynchronously
+    if (studentId != null) {
+        new SwingWorker<StudentDomain, Void>() {
+            @Override
+            protected StudentDomain doInBackground() throws Exception {
+                StudentDAO studentDAO = new StudentDAO();
+                return studentDAO.getStudentProfile(studentId); // should return groupName & courseName too
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    StudentDomain student = get();
+                    if (student != null) {
+                        nameLabel.setText("Name: " + student.getFirstName() + " " + student.getLastName());
+                        studentNumberLabel.setText("Student Number: " + student.getStudentID());
+                        groupLabel.setText("Group: " + (student.getGroupName() != null ? student.getGroupName() : "-"));
+                        courseLabel.setText("Course: " + (student.getCourseName() != null ? student.getCourseName() : "-"));
+                    } else {
+                        nameLabel.setText("Name: -");
+                        studentNumberLabel.setText("Student Number: -");
+                        groupLabel.setText("Group: -");
+                        courseLabel.setText("Course: -");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    nameLabel.setText("Name: Error");
+                    studentNumberLabel.setText("Student Number: Error");
+                    groupLabel.setText("Group: Error");
+                    courseLabel.setText("Course: Error");
+                }
+            }
+        }.execute();
+    } else {
+        // studentId is null
+        nameLabel.setText("Name: -");
+        studentNumberLabel.setText("Student Number: -");
+        groupLabel.setText("Group: -");
+        courseLabel.setText("Course: -");
+    }
+
+    return header;
+}
+
+
+
 
     // ------------------- MAIN CONTENT -------------------
     private JPanel createMainContent() {
-
         JPanel mainContent = new JPanel(new GridBagLayout());
         mainContent.setOpaque(false);
-        mainContent.setBorder(new EmptyBorder(30, 30, 30, 30));
+        mainContent.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(15, 15, 15, 15);
         gbc.fill = GridBagConstraints.BOTH;
 
-        // 🔸 Info Card
+        // Info Overview
         String[] infoLines = {
-                "Your next class is Software Engineering at 10:00 AM.",
-                "Location: Room 205, Building B.",
+                "Next class: Software Engineering at 10:00 AM",
+                "Location: Room 205, Building B",
                 "Lecturer: Dr. Smith"
         };
-        JPanel infoCard = createInfoCard("Today’s Overview", infoLines, 130);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0.35;
-        gbc.weighty = 0.4;
-        mainContent.add(infoCard, gbc);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.33; gbc.weighty = 0.2;
+        mainContent.add(new FrostedGlassCard("Today's Overview", infoLines, 120), gbc);
 
-        // 🔸 Timetable Card
-        String[][] data = {
-                {"8:00", "Networking"},
-                {"10:00", "Software Engineering"},
-                {"13:00", "Database Systems"}
+        // Current Courses
+        String[][] courses = {
+                {"CS101", "Software Eng", "Dr. Smith"},
+                {"CS102", "Database Systems", "Prof. Jones"},
+                {"CS103", "Networking", "Dr. Lee"}
         };
-        String[] columns = {"Time", "Subject"};
-        JPanel timetableCard = createTableCard("Today’s Timetable", data, columns);
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 0.65;
-        gbc.weighty = 0.4;
-        mainContent.add(timetableCard, gbc);
+        gbc.gridx = 1; gbc.gridy = 0;
+        mainContent.add(new FrostedGlassTableCard("Current Courses", courses, new String[]{"Code", "Course", "Instructor"}), gbc);
 
-        // 🔸 Notifications Card
-        String[] notifications = {"No notifications at this time"};
-        JPanel notificationsCard = createInfoCard("Notifications", notifications, 150);
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1;
-        gbc.weighty = 0.25;
-        mainContent.add(notificationsCard, gbc);
+        // Subject Progress
+        String[] subjects = {"Software Eng", "Database", "Networking"};
+        int[] progress = {75, 50, 90};
+        gbc.gridx = 2; gbc.gridy = 0;
+        mainContent.add(new FrostedGlassProgressCard("Subject Progress", subjects, progress), gbc);
+
+        // Attendance
+        int attended = 45, total = 50;
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weighty = 0.25;
+        mainContent.add(new FrostedGlassAttendanceCard("Lecture Attendance", attended, total), gbc);
+
+        // Upcoming Assignments
+        String[] assignments = {
+                "Database Project - Due 12 Oct (High)",
+                "Networking Quiz - Due 10 Oct (Medium)",
+                "Software Eng Assignment - Due 15 Oct (Low)"
+        };
+        gbc.gridx = 1; gbc.gridy = 1;
+        mainContent.add(new FrostedGlassCard("Upcoming Assignments", assignments, 150), gbc);
+
+        // Notifications
+        String[] notifications = {"Room change for Networking class", "Software Eng lecture canceled"};
+        gbc.gridx = 2; gbc.gridy = 1;
+        mainContent.add(new FrostedGlassCard("Notifications", notifications, 150), gbc);
+
+        // Academic Stats
+        String[] stats = {"Average GPA: 3.5", "Time Studied: 12h/week"};
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 3; gbc.weightx = 1;
+        mainContent.add(new FrostedGlassCard("Academic Stats", stats, 120), gbc);
 
         return mainContent;
     }
 
-    // ------------------- FOOTER BUTTONS -------------------
+    // ------------------- FOOTER -------------------
     private JPanel createFooterButtons() {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
         buttonPanel.setOpaque(false);
 
-        JButton blackboardBtn = createStyledButton("Blackboard", "https://myclassroom.cput.ac.za/");
-        JButton outlookBtn = createStyledButton("Outlook", "https://outlook.office.com");
-
-        buttonPanel.add(blackboardBtn);
-        buttonPanel.add(outlookBtn);
+        buttonPanel.add(createStyledButton("Blackboard", "https://myclassroom.cput.ac.za/"));
+        buttonPanel.add(createStyledButton("Outlook", "https://outlook.office.com"));
         return buttonPanel;
     }
 
     private JButton createStyledButton(String text, String url) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Poppins", Font.BOLD, 13));
-        btn.setBackground(Color.decode("#34495E"));
+        btn.setBackground(new Color(41, 128, 185));
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setPreferredSize(new Dimension(130, 38));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
 
-        // Hover animation
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(Color.decode("#2E86C1"));
-            }
-
+            public void mouseEntered(java.awt.event.MouseEvent e) { btn.setBackground(new Color(52, 152, 219)); }
             @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(Color.decode("#34495E"));
-            }
+            public void mouseExited(java.awt.event.MouseEvent e) { btn.setBackground(new Color(41, 128, 185)); }
         });
-
-        btn.addActionListener(e -> openWebpage(url));
+        btn.addActionListener(e -> {
+            try { Desktop.getDesktop().browse(new java.net.URI(url)); }
+            catch (Exception ex) { JOptionPane.showMessageDialog(DashboardPanel.this, "Failed to open link:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); }
+        });
         return btn;
     }
 
-    // ------------------- HELPER METHODS -------------------
-    private JPanel createInfoCard(String title, String[] lines, int preferredHeight) {
-        JPanel panel = createCardPanel();
-        panel.setPreferredSize(new Dimension(260, preferredHeight));
-        panel.setLayout(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 20, 15, 20));
+    public void setStudent(StudentDomain student) {
+    if (student != null) {
+        this.studentId = student.getStudentID();
+        this.groupId = student.getGroupID();
 
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Poppins", Font.BOLD, 15));
-        titleLabel.setForeground(Color.decode("#2C3E50"));
+        nameLabel.setText("Name: " + student.getFirstName() + " " + student.getLastName());
+        studentNumberLabel.setText("Student Number: " + student.getStudentID());
+        groupLabel.setText("Group: " + (student.getGroupID() != null ? student.getGroupID() : "-"));
+        courseLabel.setText("Course: " + (student.getCourseName() != null ? student.getCourseName() : "-"));
+    } else {
+        nameLabel.setText("Name: -");
+        studentNumberLabel.setText("Student Number: -");
+        groupLabel.setText("Group: -");
+        courseLabel.setText("Course: -");
+    }
+    revalidate();
+    repaint();
+}
 
-        JPanel linePanel = new JPanel();
-        linePanel.setLayout(new BoxLayout(linePanel, BoxLayout.Y_AXIS));
-        linePanel.setOpaque(false);
 
-        for (String line : lines) {
-            JLabel label = new JLabel("<html><p style='width:220px'>" + line + "</p></html>");
-            label.setFont(new Font("Poppins", Font.PLAIN, 13));
-            label.setForeground(Color.decode("#566573"));
-            label.setBorder(new EmptyBorder(5, 0, 5, 0));
-            linePanel.add(label);
+    // ================= GLASS PANEL BASE =================
+    private abstract static class FrostedGlassPanel extends JPanel {
+        public FrostedGlassPanel() { setOpaque(false); }
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int arc = 20;
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
+
+            g2.setColor(new Color(255, 255, 255, 50));
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, arc, arc);
+
+            g2.setColor(new Color(0, 0, 0, 20));
+            g2.fillRoundRect(3, 3, getWidth(), getHeight(), arc, arc);
+
+            g2.dispose();
+            super.paintComponent(g);
         }
-
-        panel.add(titleLabel, BorderLayout.NORTH);
-        panel.add(linePanel, BorderLayout.CENTER);
-        return panel;
     }
 
-    private JPanel createTableCard(String title, String[][] data, String[] columns) {
-        JTable table = new JTable(data, columns);
-        styleTable(table);
+    // ---------------- CARD CLASSES ----------------
+    private static class FrostedGlassCard extends FrostedGlassPanel {
+        public FrostedGlassCard(String title, String[] lines, int height) {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBorder(new EmptyBorder(15, 20, 15, 20));
+            setPreferredSize(new Dimension(260, height));
 
-        JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
+            JLabel titleLabel = new JLabel(title);
+            titleLabel.setFont(new Font("Poppins", Font.BOLD, 15));
+            titleLabel.setForeground(new Color(28, 66, 138));
+            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            add(titleLabel);
+            add(Box.createVerticalStrut(10));
 
-        JPanel panel = createCardPanel();
-        panel.setLayout(new BorderLayout());
-        panel.setBorder(new EmptyBorder(10, 15, 10, 15));
-
-        JLabel label = new JLabel(title, SwingConstants.CENTER);
-        label.setFont(new Font("Poppins", Font.BOLD, 15));
-        label.setBorder(new EmptyBorder(10, 0, 10, 0));
-        label.setForeground(Color.decode("#2C3E50"));
-
-        panel.add(label, BorderLayout.NORTH);
-        panel.add(scroll, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel createCardPanel() {
-        return new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-
-                // subtle shadow
-                g2.setColor(new Color(0, 0, 0, 30));
-                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 20, 20);
+            for (String line : lines) {
+                JLabel label = new JLabel("<html><p style='width:220px'>" + line + "</p></html>");
+                label.setFont(new Font("Poppins", Font.PLAIN, 13));
+                label.setForeground(new Color(28, 66, 138));
+                add(label);
+                add(Box.createVerticalStrut(5));
             }
-        };
-    }
-
-    private void styleTable(JTable table) {
-        table.setFont(new Font("Poppins", Font.PLAIN, 13));
-        table.setRowHeight(28);
-        table.setShowGrid(false);
-        table.setIntercellSpacing(new Dimension(0, 0));
-        table.setFillsViewportHeight(true);
-
-        table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 13));
-        table.getTableHeader().setBackground(Color.decode("#ECF0F1"));
-        table.getTableHeader().setForeground(Color.decode("#2C3E50"));
-
-        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
-        center.setHorizontalAlignment(SwingConstants.CENTER);
-        table.setDefaultRenderer(Object.class, center);
-    }
-
-    private void openWebpage(String urlString) {
-        try {
-            Desktop.getDesktop().browse(new java.net.URI(urlString));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to open link:\n" + e.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // ------------------- NEW METHOD -------------------
-    public void setStudent(String studentId, String groupId) {
-        this.studentId = studentId;
-        this.groupId = groupId;
+    private static class FrostedGlassProgressCard extends FrostedGlassPanel {
+        public FrostedGlassProgressCard(String title, String[] subjects, int[] progress) {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBorder(new EmptyBorder(10, 15, 10, 15));
 
-        // Update header labels dynamically
-        if (nameLabel != null) nameLabel.setText("Welcome, " + (studentId != null ? studentId : "Student"));
-        if (groupLabel != null) groupLabel.setText("Group: " + (groupId != null ? groupId : "-"));
+            JLabel titleLabel = new JLabel(title);
+            titleLabel.setFont(new Font("Poppins", Font.BOLD, 15));
+            titleLabel.setForeground(new Color(28, 66, 138));
+            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            add(titleLabel);
+            add(Box.createVerticalStrut(10));
 
-        revalidate();
-        repaint();
+            Color[] barColors = {new Color(72, 196, 181), new Color(135, 206, 250), new Color(176, 224, 230)};
+            for (int i = 0; i < subjects.length; i++) {
+                JLabel subjLabel = new JLabel(subjects[i]);
+                subjLabel.setFont(new Font("Poppins", Font.PLAIN, 13));
+                add(subjLabel);
+
+                JProgressBar bar = new JProgressBar(0, 100);
+                bar.setValue(progress[i]);
+                bar.setStringPainted(true);
+                bar.setForeground(barColors[i % barColors.length]);
+                add(bar);
+                add(Box.createVerticalStrut(5));
+            }
+        }
+    }
+
+    private static class FrostedGlassAttendanceCard extends FrostedGlassPanel {
+        public FrostedGlassAttendanceCard(String title, int attended, int total) {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBorder(new EmptyBorder(10, 15, 10, 15));
+
+            JLabel titleLabel = new JLabel(title);
+            titleLabel.setFont(new Font("Poppins", Font.BOLD, 15));
+            titleLabel.setForeground(new Color(28, 66, 138));
+            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            add(titleLabel);
+            add(Box.createVerticalStrut(10));
+
+            JLabel statsLabel = new JLabel("Attended: " + attended + " / " + total);
+            statsLabel.setFont(new Font("Poppins", Font.PLAIN, 13));
+            statsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            add(statsLabel);
+
+            JProgressBar bar = new JProgressBar(0, total);
+            bar.setValue(attended);
+            bar.setStringPainted(true);
+            bar.setForeground(new Color(72, 196, 181));
+            add(bar);
+        }
+    }
+
+    private static class FrostedGlassTableCard extends FrostedGlassPanel {
+        public FrostedGlassTableCard(String title, String[][] data, String[] columns) {
+            JTable table = new JTable(data, columns);
+table.setOpaque(false);  // make table transparent
+table.setFillsViewportHeight(true);
+table.setShowGrid(false);
+table.setIntercellSpacing(new Dimension(0, 0));
+table.getTableHeader().setOpaque(false);
+table.getTableHeader().setBackground(new Color(255, 255, 255, 120)); // semi-transparent
+table.getTableHeader().setForeground(new Color(28, 66, 138));
+table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 13));
+table.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(255,255,255,80)));
+
+
+// Transparent cell renderer for the table
+table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable t, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c = super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, column);
+        if (!isSelected) {
+            c.setBackground(new Color(255, 255, 255, 50));  // semi-transparent
+        }
+        setHorizontalAlignment(SwingConstants.CENTER);
+        setForeground(new Color(28, 66, 138));
+        return c;
+    }
+});
+
+            JScrollPane scroll = new JScrollPane(table);
+scroll.setOpaque(false);                 // scroll pane transparent
+scroll.getViewport().setOpaque(false);   // viewport transparent
+scroll.setBorder(BorderFactory.createEmptyBorder());
+
+
+            setLayout(new BorderLayout());
+            setBorder(new EmptyBorder(10, 15, 10, 15));
+            setPreferredSize(new Dimension(260, 150));
+
+            JLabel label = new JLabel(title, SwingConstants.CENTER);
+            label.setFont(new Font("Poppins", Font.BOLD, 15));
+            label.setBorder(new EmptyBorder(10, 0, 10, 0));
+            label.setForeground(new Color(28, 66, 138));
+
+            add(label, BorderLayout.NORTH);
+            add(scroll, BorderLayout.CENTER);
+        }
     }
 }
