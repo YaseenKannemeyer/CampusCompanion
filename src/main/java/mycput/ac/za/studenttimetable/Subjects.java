@@ -49,98 +49,76 @@ public class Subjects extends JPanel {
 
     // ---------------- UI ------------------------
     private void initUI() {
-        add(buildHeader(), BorderLayout.NORTH);
+    add(buildHeader(), BorderLayout.NORTH);
 
-        ModernCard card = new ModernCard();
-        card.setLayout(new BorderLayout());
-        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+    ModernCard card = new ModernCard();
+    card.setLayout(new BorderLayout());
+    card.setBorder(new EmptyBorder(30, 30, 30, 30)); // more spacing
 
-        JLabel hTitle = new JLabel("Subject Grade Calculator");
-        hTitle.setFont(getPoppins(22f, Font.BOLD));
-        hTitle.setForeground(new Color(33, 37, 41));
+    // Title block
+    JLabel hTitle = new JLabel("Subject Grade Calculator");
+    hTitle.setFont(getPoppins(26f, Font.BOLD));
+    hTitle.setForeground(new Color(33, 37, 41));
 
-        JLabel hSub = new JLabel("Edit term marks, then calculate final grades — instantly.");
-        hSub.setFont(getPoppins(13f, Font.PLAIN));
-        hSub.setForeground(new Color(100, 104, 110));
+    JLabel hSub = new JLabel("Edit term marks, then calculate final grades — instantly.");
+    hSub.setFont(getPoppins(15f, Font.PLAIN));
+    hSub.setForeground(new Color(100, 104, 110));
 
-        JPanel titleBlock = new JPanel(new BorderLayout());
-        titleBlock.setOpaque(false);
-        titleBlock.add(hTitle, BorderLayout.NORTH);
-        titleBlock.add(hSub, BorderLayout.SOUTH);
-        card.add(titleBlock, BorderLayout.NORTH);
+    JPanel titleBlock = new JPanel(new BorderLayout());
+    titleBlock.setOpaque(false);
+    titleBlock.add(hTitle, BorderLayout.NORTH);
+    titleBlock.add(hSub, BorderLayout.SOUTH);
+    card.add(titleBlock, BorderLayout.NORTH);
 
-        model = createModel(new String[]{"Subject", "Final Grade"});
-        table = new JTable(model);
-        // Wrap text in "Subject" column
-table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
-    private final JTextArea textArea = new JTextArea();
-    {
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setOpaque(true);
-        textArea.setFont(getPoppins(14f, Font.PLAIN));
-        textArea.setBorder(new EmptyBorder(4, 8, 4, 8));
-    }
+    // Table setup
+    model = createModel(new String[]{"Subject", "Final Grade"});
+    table = new JTable(model);
 
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value,
-                                                   boolean isSelected, boolean hasFocus,
-                                                   int row, int column) {
-        textArea.setText(value != null ? value.toString() : "");
-        if (isSelected) textArea.setBackground(new Color(220,235,251));
-        else textArea.setBackground(row % 2 == 0 ? Color.WHITE : new Color(247,248,250));
+    table.setRowHeight(50); // increased row height
+    table.setFont(getPoppins(16f, Font.PLAIN));
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new Dimension(0, 0));
+    table.setFillsViewportHeight(true);
 
-        // dynamically adjust row height
-        int prefHeight = textArea.getPreferredSize().height;
-        if (table.getRowHeight(row) != prefHeight) table.setRowHeight(row, prefHeight);
+    JTableHeader th = table.getTableHeader();
+    th.setDefaultRenderer(new HeaderRenderer());
+    th.setReorderingAllowed(false);
+    th.setPreferredSize(new Dimension(th.getPreferredSize().width, 50));
 
-        return textArea;
-    }
-});
+    table.setDefaultRenderer(Number.class, new DefaultTableCellRenderer() {{ setHorizontalAlignment(CENTER); }});
+    table.setDefaultRenderer(Object.class, new TableCellRenderer());
+    table.setDefaultEditor(Number.class, new NumericEditor());
+    table.getColumnModel().getColumn(table.getColumnCount() - 1).setCellRenderer(new FinalGradeRenderer());
 
+    JScrollPane sp = new JScrollPane(table);
+    sp.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+    sp.getVerticalScrollBar().setUnitIncrement(16);
+    sp.setPreferredSize(new Dimension(1000, 700)); // bigger scrollable area
+    sp.getVerticalScrollBar().setUI(new ModernScrollBarUI());
+    card.add(sp, BorderLayout.CENTER);
 
-        table.setRowHeight(40);
-        table.setFont(getPoppins(14f, Font.PLAIN));
-        table.setShowGrid(false);
-        table.setIntercellSpacing(new Dimension(0, 0));
-        table.setFillsViewportHeight(true);
+    // Controls buttons
+    JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 8));
+    controls.setOpaque(false);
+    controls.add(createButton("Copy Grades", new Color(255,193,7), e -> copyToClipboard()));
+    controls.add(createButton("Export CSV", new Color(76,175,80), e -> exportCSV()));
+    controls.add(createButton("Export SVG", new Color(156,39,176), e -> exportSVG()));
+    controls.add(createButton("Calculate", new Color(33,150,243), e -> calculateAll()));
+    card.add(controls, BorderLayout.SOUTH);
 
-        JTableHeader th = table.getTableHeader();
-        th.setDefaultRenderer(new HeaderRenderer());
-        th.setReorderingAllowed(false);
-        th.setPreferredSize(new Dimension(th.getPreferredSize().width, 44));
+    // Center the card with GridBagLayout
+    JPanel centerWrap = new JPanel(new GridBagLayout());
+    centerWrap.setOpaque(false);
+    centerWrap.add(card, new GridBagConstraints() {{
+        fill = GridBagConstraints.BOTH;
+        weightx = 1.0;
+        weighty = 1.0;
+    }});
+    add(centerWrap, BorderLayout.CENTER);
 
-        table.setDefaultRenderer(Number.class, new DefaultTableCellRenderer() {{
-            setHorizontalAlignment(SwingConstants.CENTER);
-        }});
+    card.pulse();
+}
 
-        table.setDefaultRenderer(Object.class, new TableCellRenderer());
-        table.setDefaultEditor(Number.class, new NumericEditor());
-        table.getColumnModel().getColumn(table.getColumnCount() - 1).setCellRenderer(new FinalGradeRenderer());
-
-        JScrollPane sp = new JScrollPane(table);
-        sp.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
-        sp.getVerticalScrollBar().setUnitIncrement(12);
-        sp.getVerticalScrollBar().setUI(new ModernScrollBarUI());
-        sp.setPreferredSize(new Dimension(800, 500)); // width x height
-        card.add(sp, BorderLayout.CENTER);
-
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 6));
-        controls.setOpaque(false);
-        controls.add(createButton("Copy Grades", new Color(255,193,7), e -> copyToClipboard()));
-        controls.add(createButton("Export CSV", new Color(76,175,80), e -> exportCSV()));
-        controls.add(createButton("Export SVG", new Color(156,39,176), e -> exportSVG()));
-        controls.add(createButton("Calculate", new Color(33,150,243), e -> calculateAll()));
-
-        card.add(controls, BorderLayout.SOUTH);
-
-        JPanel centerWrap = new JPanel(new GridBagLayout());
-        centerWrap.setOpaque(false);
-        centerWrap.add(card);
-        add(centerWrap, BorderLayout.CENTER);
-
-        card.pulse();
-    }
 
     private JPanel buildHeader() {
         JPanel p = new JPanel(new BorderLayout());

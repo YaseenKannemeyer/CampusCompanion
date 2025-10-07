@@ -31,7 +31,7 @@ public class StudentTimeTable extends JFrame {
         contentPanel = new JPanel(new BorderLayout());
         timetableTable = createTimetableTable();
 
-        // Initialize connection provider BEFORE using it in SidebarPanel
+        // Connection provider
         this.connectionProvider = () -> DBConnection.derbyConnection();
 
         // Initialize forms
@@ -49,7 +49,6 @@ public class StudentTimeTable extends JFrame {
     }
 
     // ------------------- Sliding Animations -------------------
-
     public void slideToLogin() {
         Timer timer = new Timer(TIMER_DELAY, null);
         timer.addActionListener(e -> {
@@ -88,19 +87,18 @@ public class StudentTimeTable extends JFrame {
         timer.start();
     }
 
-    // ------------------- Main Dashboard -------------------
+    // ------------------- Show Full-Screen Dashboard -------------------
     public void showMainDashboard() {
+        // Remove login/signup panels
         getContentPane().removeAll();
         setLayout(new BorderLayout());
 
-        // Keep a single contentPanel
-        contentPanel.setLayout(new BorderLayout());
+        // Maximize window
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-        // Initialize sidebar once
+        // Initialize sidebar and content panel
         sidebar = new SidebarPanel(contentPanel, timetableTable, connectionProvider);
         add(sidebar, BorderLayout.WEST);
-
-        // Add content panel in center
         add(contentPanel, BorderLayout.CENTER);
 
         getContentPane().revalidate();
@@ -132,9 +130,7 @@ public class StudentTimeTable extends JFrame {
 
         DefaultTableModel model = new DefaultTableModel(data, columns) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
 
         JTable table = new JTable(model);
@@ -152,9 +148,7 @@ public class StudentTimeTable extends JFrame {
                                                            boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 setHorizontalAlignment(SwingConstants.CENTER);
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(245, 245, 245));
-                }
+                if (!isSelected) c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(245, 245, 245));
                 return c;
             }
         };
@@ -168,8 +162,8 @@ public class StudentTimeTable extends JFrame {
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(loginForm, BorderLayout.CENTER);
 
-        // Clear content references
-        contentPanel = new JPanel(new BorderLayout()); // reinitialize to avoid null
+        // Reset references
+        contentPanel = new JPanel(new BorderLayout());
         sidebar = null;
 
         getContentPane().revalidate();

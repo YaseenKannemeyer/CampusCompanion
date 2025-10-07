@@ -156,21 +156,7 @@ public class StudentDAO {
 public StudentDomain getStudentProfile(String studentId) throws SQLException {
     String sql = """
         SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName,
-               s.PhoneNumber, s.Email,
-               g.GroupName, c.CourseName
-        FROM Student s
-        LEFT JOIN StudentGroup sg ON s.GroupID = sg.GroupID
-        LEFT JOIN Course c ON sg.CourseID = c.CourseID
-        LEFT JOIN StudentGroup g ON s.GroupID = g.GroupID
-        LEFT JOIN StudentGroup sg2 ON s.GroupID = sg2.GroupID
-        LEFT JOIN StudentGroup g2 ON s.GroupID = g2.GroupID
-    """;
-
-    // Simplify: use correct joins
-    sql = """
-        SELECT s.StudentID, s.UserID, s.GroupID, s.FirstName, s.LastName,
-               s.PhoneNumber, s.Email,
-               sg.GroupName, c.CourseName
+               s.PhoneNumber, s.Email, c.CourseName
         FROM Student s
         LEFT JOIN StudentGroup sg ON s.GroupID = sg.GroupID
         LEFT JOIN Course c ON sg.CourseID = c.CourseID
@@ -189,14 +175,14 @@ public StudentDomain getStudentProfile(String studentId) throws SQLException {
                 student.setLastName(rs.getString("LastName"));
                 student.setPhoneNumber(rs.getString("PhoneNumber"));
                 student.setEmail(rs.getString("Email"));
-                student.setGroupName(rs.getString("GroupName")); // new
-                student.setCourseName(rs.getString("CourseName")); // new
+                student.setCourseName(rs.getString("CourseName"));
                 return student;
             }
         }
     }
     return null;
 }
+
 
 
     // =========================
