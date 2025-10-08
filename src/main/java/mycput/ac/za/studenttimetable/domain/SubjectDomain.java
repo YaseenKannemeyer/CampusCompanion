@@ -46,4 +46,10 @@ public class SubjectDomain {
     public void setYearLevel(int YearLevel) {
         this.YearLevel = YearLevel;
     }
+
+    @Override
+    public String toString() {
+        return "SubjectDomain{" + "SubjectCode=" + SubjectCode + ", SubjectName=" + SubjectName + ", YearLevel=" + YearLevel + '}';
+    }
+    
 }

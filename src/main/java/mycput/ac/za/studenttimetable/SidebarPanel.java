@@ -13,11 +13,13 @@ import mycput.ac.za.studenttimetable.domain.StudentDomain;
 public class SidebarPanel extends JPanel {
 
     // ================= COLORS =================
-    private static final Color SIDEBAR_BG = new Color(255, 255, 255, 60); // translucent white
-    private static final Color SIDEBAR_HOVER = new Color(72, 196, 255, 180); // blue hover
-    private static final Color SIDEBAR_ACTIVE = new Color(72, 196, 255, 220); // blue active
-    private static final Color ITEM_TEXT = new Color(28, 66, 138); // dark blue text
-    private static final Color INNER_SHADOW = new Color(0, 0, 0, 30);
+    private static final Color SIDEBAR_GRADIENT_START = new Color(70, 130, 180, 230); // top (steel blue)
+    private static final Color SIDEBAR_GRADIENT_END = new Color(100, 180, 220, 230);  // bottom (lighter cyan-blue)
+    private static final Color SIDEBAR_HOVER = new Color(90, 160, 230, 240);  // slightly brighter blue
+    private static final Color SIDEBAR_ACTIVE = new Color(40, 120, 200, 255); // deeper active blue
+    private static final Color ITEM_TEXT = Color.WHITE;
+    private static final Color INNER_SHADOW = new Color(0, 0, 0, 50);
+    private static final Color RIGHT_BORDER = new Color(0, 0, 0, 50);
 
     private final Subjects.ConnectionProvider connectionProvider;
     private final JPanel contentPanel;
@@ -40,15 +42,14 @@ public class SidebarPanel extends JPanel {
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setOpaque(false);
-        setPreferredSize(new Dimension(200, 0));
-        setBorder(new EmptyBorder(10, 10, 10, 10));
+        setPreferredSize(new Dimension(220, 0));
+        setBorder(new EmptyBorder(15, 15, 15, 15));
 
         add(createLogoPanel());
-        add(Box.createRigidArea(new Dimension(0, 20)));
+        add(Box.createRigidArea(new Dimension(0, 25)));
 
         initContentPanels(table);
 
-        // Sidebar items
         String[] items = {"Dashboard", "Timetable", "Subjects", "Notifications", "Settings"};
         for (String item : items) {
             FrostedGlassPanel panel = createSidebarItem(item);
@@ -59,23 +60,23 @@ public class SidebarPanel extends JPanel {
                 setActiveItem(panel);
                 renderContent("Dashboard");
             }
+
+            add(Box.createRigidArea(new Dimension(0, 10)));
         }
 
         add(Box.createVerticalGlue());
         add(createLogoutButton());
     }
 
-    // ================= INIT CONTENT PANELS =================
     private void initContentPanels(JTable table) {
         contentPanel.setLayout(new CardLayout());
 
         dashboardPanel = new DashboardPanel(connectionProvider, null, null);
-
         timetablePanel = new JPanel(new BorderLayout());
         timetablePanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
         subjectsPanel = new Subjects(connectionProvider, "", "");
-        settingsPanel = new SettingsPanel();
+        settingsPanel = new SettingsPanel(connectionProvider);
         notificationsPanel = new NotificationsPanel();
 
         contentPanel.add(dashboardPanel, "Dashboard");
@@ -86,67 +87,73 @@ public class SidebarPanel extends JPanel {
     }
 
     public void setCurrentStudent(String studentId, String studentGroup) {
-        this.currentStudentId = studentId;
-        this.currentStudentGroup = studentGroup;
-
-        try {
-            StudentDAO studentDAO = new StudentDAO();
-            StudentDomain student = studentDAO.getStudentProfile(studentId);
-
-            if (dashboardPanel != null && student != null) dashboardPanel.setStudent(student);
-            if (subjectsPanel != null) subjectsPanel.setStudent(studentId, studentGroup);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to load student info: " + e.getMessage(),
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    // ================= LOGO =================
-private FrostedGlassPanel createLogoPanel() {
-    FrostedGlassPanel logoPanel = new FrostedGlassPanel();
-    logoPanel.setLayout(new BorderLayout());
+    this.currentStudentId = studentId;
+    this.currentStudentGroup = studentGroup;
 
     try {
-        ImageIcon icon = new ImageIcon(getClass().getResource("/icons/Logo.png"));
-        Image scaled = icon.getImage().getScaledInstance(120, 60, Image.SCALE_SMOOTH);
-        JLabel logo = new JLabel(new ImageIcon(scaled));
-        logo.setHorizontalAlignment(SwingConstants.CENTER);
-        logoPanel.add(logo, BorderLayout.CENTER);
+        StudentDAO dao = new StudentDAO();
+        StudentDomain student = dao.getStudentProfile(studentId);
 
-        // Set panel size exactly to the logo
-        logoPanel.setPreferredSize(new Dimension(200, 90));
-        logoPanel.setMaximumSize(new Dimension(200, 90));
-        logoPanel.setMinimumSize(new Dimension(200, 90));
+        if (dashboardPanel != null && student != null)
+            dashboardPanel.setStudent(student);
+
+        if (subjectsPanel != null)
+            subjectsPanel.setStudent(studentId, studentGroup);
+
+        if (settingsPanel != null)
+            settingsPanel.setStudent(studentId, studentGroup); // <-- ADD THIS LINE
 
     } catch (Exception e) {
-        JLabel fallback = new JLabel("Student Timetable", SwingConstants.CENTER);
-        fallback.setFont(new Font("Poppins", Font.BOLD, 16));
-        fallback.setForeground(ITEM_TEXT);
-        logoPanel.add(fallback, BorderLayout.CENTER);
-
-        // fallback size
-        logoPanel.setPreferredSize(new Dimension(150, 30));
-        logoPanel.setMaximumSize(new Dimension(150, 30));
-        logoPanel.setMinimumSize(new Dimension(150, 30));
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Failed to load student info: " + e.getMessage(),
+                "Database Error", JOptionPane.ERROR_MESSAGE);
     }
-
-    return logoPanel;
 }
 
-    // ================= SIDEBAR ITEM =================
+
+    // ================= LOGO =================
+    private FrostedGlassPanel createLogoPanel() {
+        FrostedGlassPanel logoPanel = new FrostedGlassPanel();
+        logoPanel.setLayout(new BorderLayout());
+
+        int panelWidth = 200;
+        int panelHeight = 120;
+
+        try {
+            ImageIcon icon = new ImageIcon(getClass().getResource("/icons/Logo.png"));
+            int logoHeight = 90;
+            int logoWidth = (icon.getIconWidth() * logoHeight) / icon.getIconHeight();
+            Image scaled = icon.getImage().getScaledInstance(logoWidth, logoHeight, Image.SCALE_SMOOTH);
+
+            JLabel logo = new JLabel(new ImageIcon(scaled));
+            logo.setHorizontalAlignment(SwingConstants.CENTER);
+            logoPanel.add(logo, BorderLayout.CENTER);
+
+        } catch (Exception e) {
+            JLabel fallback = new JLabel("Student Timetable", SwingConstants.CENTER);
+            fallback.setFont(new Font("Poppins", Font.BOLD, 20));
+            fallback.setForeground(ITEM_TEXT);
+            logoPanel.add(fallback, BorderLayout.CENTER);
+        }
+
+        logoPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
+        logoPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
+        logoPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
+
+        return logoPanel;
+    }
+
     private FrostedGlassPanel createSidebarItem(String name) {
         FrostedGlassPanel itemPanel = new FrostedGlassPanel();
         itemPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        itemPanel.setMaximumSize(new Dimension(180, 50));
-        itemPanel.setBackground(SIDEBAR_BG);
+        itemPanel.setMaximumSize(new Dimension(200, 50));
         itemPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        itemPanel.setInactive(); // gradient inactive
 
         JLabel label = new JLabel(name);
-        label.setFont(new Font("Poppins", Font.PLAIN, 14));
+        label.setFont(new Font("Poppins", Font.BOLD, 15));
         label.setForeground(ITEM_TEXT);
-        label.setBorder(new EmptyBorder(5, 10, 5, 5));
+        label.setBorder(new EmptyBorder(5, 15, 5, 5));
         itemPanel.add(label);
 
         itemPanel.addMouseListener(new MouseAdapter() {
@@ -157,7 +164,7 @@ private FrostedGlassPanel createLogoPanel() {
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (itemPanel != activeItemPanel) itemPanel.animateBackground(itemPanel.getBackground(), SIDEBAR_BG);
+                if (itemPanel != activeItemPanel) itemPanel.setInactive();
             }
 
             @Override
@@ -171,61 +178,42 @@ private FrostedGlassPanel createLogoPanel() {
     }
 
     private void setActiveItem(FrostedGlassPanel newActive) {
-        if (activeItemPanel != null) activeItemPanel.animateBackground(activeItemPanel.getBackground(), SIDEBAR_BG);
+        if (activeItemPanel != null) activeItemPanel.setInactive();
         activeItemPanel = newActive;
         if (activeItemPanel != null) activeItemPanel.animateBackground(activeItemPanel.getBackground(), SIDEBAR_ACTIVE);
     }
 
     public void renderContent(String item) {
         CardLayout cl = (CardLayout) contentPanel.getLayout();
-
-        try {
-            if (currentStudentId != null) {
-                StudentDAO studentDAO = new StudentDAO();
-                StudentDomain student = studentDAO.getStudentProfile(currentStudentId);
-
-                if ("Dashboard".equals(item) && dashboardPanel != null && student != null)
-                    dashboardPanel.setStudent(student);
-                else if ("Subjects".equals(item) && subjectsPanel != null)
-                    subjectsPanel.setStudent(currentStudentId, currentStudentGroup);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         cl.show(contentPanel, item);
         contentPanel.revalidate();
         contentPanel.repaint();
     }
 
-    // ================= LOGOUT =================
     private FrostedGlassPanel createLogoutButton() {
         FrostedGlassPanel logoutPanel = new FrostedGlassPanel();
         logoutPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        logoutPanel.setMaximumSize(new Dimension(180, 50));
-        logoutPanel.setBackground(SIDEBAR_BG);
+        logoutPanel.setMaximumSize(new Dimension(200, 50));
         logoutPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        logoutPanel.setInactive();
 
         JLabel label = new JLabel("↩️ Logout");
-        label.setFont(new Font("Poppins", Font.PLAIN, 14));
+        label.setFont(new Font("Poppins", Font.BOLD, 15));
         label.setForeground(ITEM_TEXT);
-        label.setBorder(new EmptyBorder(5, 10, 5, 5));
+        label.setBorder(new EmptyBorder(5, 15, 5, 5));
         logoutPanel.add(label);
 
         logoutPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) { logoutPanel.animateBackground(logoutPanel.getBackground(), SIDEBAR_HOVER); }
-
             @Override
-            public void mouseExited(MouseEvent e) { logoutPanel.animateBackground(logoutPanel.getBackground(), SIDEBAR_BG); }
-
+            public void mouseExited(MouseEvent e) { logoutPanel.setInactive(); }
             @Override
             public void mouseClicked(MouseEvent e) {
                 JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(SidebarPanel.this);
                 int confirm = JOptionPane.showConfirmDialog(topFrame, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-
                 if (confirm == JOptionPane.YES_OPTION && topFrame instanceof StudentTimeTable mainFrame) {
-                    Session.setStudent(null, null); // clear session
+                    Session.setStudent(null, null);
                     LoginForm loginForm = new LoginForm(mainFrame, connectionProvider);
                     mainFrame.showLoginPanel(loginForm);
                     setActiveItem(null);
@@ -236,9 +224,14 @@ private FrostedGlassPanel createLogoPanel() {
         return logoutPanel;
     }
 
-    // ================= GLASS PANEL BASE =================
     private static class FrostedGlassPanel extends JPanel {
+
+        private boolean inactive = true;
+
         public FrostedGlassPanel() { setOpaque(false); }
+
+        public void setInactive() { inactive = true; repaint(); }
+        public void setActive() { inactive = false; }
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -247,18 +240,28 @@ private FrostedGlassPanel createLogoPanel() {
 
             int arc = 20;
 
-            g2.setColor(SIDEBAR_BG);
+            if (inactive) {
+                GradientPaint gp = new GradientPaint(0, 0, SIDEBAR_GRADIENT_START, 0, getHeight(), SIDEBAR_GRADIENT_END);
+                g2.setPaint(gp);
+            } else {
+                g2.setColor(getBackground());
+            }
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
 
             g2.setColor(INNER_SHADOW);
             g2.setStroke(new BasicStroke(3));
             g2.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, arc, arc);
 
+            g2.setColor(RIGHT_BORDER);
+            g2.setStroke(new BasicStroke(2));
+            g2.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight());
+
             g2.dispose();
             super.paintComponent(g);
         }
 
         public void animateBackground(Color start, Color end) {
+            inactive = false; // hover/active override gradient
             Timer timer = new Timer(10, null);
             final int steps = 15;
             final float[] startRGB = start.getRGBComponents(null);

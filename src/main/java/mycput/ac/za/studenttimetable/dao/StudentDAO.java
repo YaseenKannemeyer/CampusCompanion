@@ -35,6 +35,29 @@ public class StudentDAO {
             throw new RuntimeException(e);
         }
     }
+    
+    // In StudentDAO.java
+public boolean checkPassword(String studentId, String password) throws SQLException {
+    String sql = """
+        SELECT u.PasswordHash
+        FROM UserAccount u
+        JOIN Student s ON u.UserID = s.UserID
+        WHERE s.StudentID = ?
+    """;
+
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, studentId);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                String storedHash = rs.getString("PasswordHash");
+                return storedHash.equals(hashPassword(password));
+            }
+        }
+    }
+    return false;
+}
+
+
 
     // =========================
     // SIGNUP
@@ -249,4 +272,51 @@ public StudentDomain getStudentProfile(String studentId) throws SQLException {
         }
         return null;
     }
+    
+    public void updateEmail(String studentId, String newEmail) throws SQLException {
+    String sql = "UPDATE Student SET Email=? WHERE StudentID=?";
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, newEmail);
+        ps.setString(2, studentId);
+        ps.executeUpdate();
+    }
+}
+public void updatePassword(String studentId, String newPassword) throws SQLException {
+    String sql = """
+        UPDATE UserAccount
+        SET PasswordHash=?
+        WHERE UserID = (SELECT UserID FROM Student WHERE StudentID=?)
+    """;
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, hashPassword(newPassword));
+        ps.setString(2, studentId);
+        ps.executeUpdate();
+    }
+}
+public void deleteStudent(String studentId) throws SQLException {
+    con.setAutoCommit(false);
+    try {
+        // Delete UserAccount linked to Student
+        String sql1 = "DELETE FROM UserAccount WHERE UserID=(SELECT UserID FROM Student WHERE StudentID=?)";
+        try (PreparedStatement ps1 = con.prepareStatement(sql1)) {
+            ps1.setString(1, studentId);
+            ps1.executeUpdate();
+        }
+
+        // Delete Student
+        String sql2 = "DELETE FROM Student WHERE StudentID=?";
+        try (PreparedStatement ps2 = con.prepareStatement(sql2)) {
+            ps2.setString(1, studentId);
+            ps2.executeUpdate();
+        }
+
+        con.commit();
+    } catch (SQLException e) {
+        con.rollback();
+        throw e;
+    } finally {
+        con.setAutoCommit(true);
+    }
+}
+
 }
