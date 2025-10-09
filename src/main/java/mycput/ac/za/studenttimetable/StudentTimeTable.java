@@ -4,7 +4,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.Connection;
 import mycput.ac.za.studenttimetable.connection.DBConnection;
 
 public class StudentTimeTable extends JFrame {
@@ -89,25 +88,31 @@ public class StudentTimeTable extends JFrame {
 
     // ------------------- Show Full-Screen Dashboard -------------------
     public void showMainDashboard() {
-        // Remove login/signup panels
-        getContentPane().removeAll();
-        setLayout(new BorderLayout());
+    // Remove login/signup panels
+    getContentPane().removeAll();
+    setLayout(new BorderLayout());
 
-        // Maximize window
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+    // Maximize window
+    setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-        // Initialize sidebar and content panel
-        sidebar = new SidebarPanel(contentPanel, timetableTable, connectionProvider);
-        add(sidebar, BorderLayout.WEST);
-        add(contentPanel, BorderLayout.CENTER);
+    // Create a JLayeredPane wrapper for contentPanel
+    JLayeredPane layeredPane = new JLayeredPane();
+    layeredPane.setLayout(new BorderLayout());
+    layeredPane.add(contentPanel, BorderLayout.CENTER);
 
-        getContentPane().revalidate();
-        getContentPane().repaint();
-    }
+    // Initialize sidebar and content panel
+    sidebar = new SidebarPanel(contentPanel, timetableTable, connectionProvider);
+    sidebar.setLayeredPane(layeredPane); // ✅ give SidebarPanel access to overlay layer
 
-    public SidebarPanel getSidebar() {
-        return sidebar;
-    }
+    add(sidebar, BorderLayout.WEST);
+    add(layeredPane, BorderLayout.CENTER);
+
+    getContentPane().revalidate();
+    getContentPane().repaint();
+}
+public SidebarPanel getSidebar() {
+    return sidebar;
+}
 
     // ------------------- Timetable Table -------------------
     private JTable createTimetableTable() {

@@ -23,6 +23,8 @@ public class SidebarPanel extends JPanel {
 
     private final Subjects.ConnectionProvider connectionProvider;
     private final JPanel contentPanel;
+    private JLayeredPane layeredPane;
+private ChatBotPanel chatOverlay;
 
     private DashboardPanel dashboardPanel;
     private JPanel timetablePanel;
@@ -50,7 +52,8 @@ public class SidebarPanel extends JPanel {
 
         initContentPanels(table);
 
-        String[] items = {"Dashboard", "Timetable", "Subjects", "Notifications", "Settings"};
+        String[] items = {"Dashboard", "Timetable", "Subjects", "Notifications", "Settings", "Chat"};
+
         for (String item : items) {
             FrostedGlassPanel panel = createSidebarItem(item);
             itemPanels.add(panel);
@@ -168,10 +171,23 @@ public class SidebarPanel extends JPanel {
             }
 
             @Override
-            public void mouseClicked(MouseEvent e) {
-                setActiveItem(itemPanel);
-                renderContent(name);
-            }
+public void mouseClicked(MouseEvent e) {
+    setActiveItem(itemPanel);
+    renderContent(name);
+
+    // === CHAT OVERLAY ADDITION ===
+    if (name.equals("Chat") && layeredPane != null) {
+        if (chatOverlay == null) {
+chatOverlay = new ChatBotPanel();
+            layeredPane.add(chatOverlay, JLayeredPane.PALETTE_LAYER);
+            chatOverlay.setLocation(layeredPane.getWidth() - 500, layeredPane.getHeight() - 400);
+            chatOverlay.setVisible(true);
+        } else {
+            chatOverlay.setVisible(!chatOverlay.isVisible());
+        }
+    }
+}
+
         });
 
         return itemPanel;
@@ -182,7 +198,9 @@ public class SidebarPanel extends JPanel {
         activeItemPanel = newActive;
         if (activeItemPanel != null) activeItemPanel.animateBackground(activeItemPanel.getBackground(), SIDEBAR_ACTIVE);
     }
-
+public void setLayeredPane(JLayeredPane layeredPane) {
+    this.layeredPane = layeredPane;
+}
     public void renderContent(String item) {
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, item);

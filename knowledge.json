@@ -1,0 +1,212 @@
+[
+  {
+    "category": "greetings",
+    "questionList": ["hello", "hi", "hey"],
+    "answer": "Hi there! How can I help you today?",
+    "keywords": ["hello", "hi", "hey"]
+  },
+  {
+    "category": "general",
+    "questionList": ["help", "support", "assist", "information"],
+    "answer": "You can ask me about office hours, deadlines, locations, contacts, policies, or general campus info.",
+    "keywords": ["help", "support", "assist", "information"]
+  },
+  {
+    "category": "general",
+    "questionList": ["hours", "time", "open", "closing", "schedule"],
+    "answer": "Our campus is open from 7:30am to 7:00pm, Monday to Friday.",
+    "keywords": ["hours", "time", "open", "closing", "schedule"]
+  },
+  {
+    "category": "library",
+    "questionList": ["library hours", "library open", "library schedule"],
+    "answer": "The library is open from 8:00am to 10:00pm on weekdays and 9:00am to 5:00pm on weekends.",
+    "keywords": ["library", "hours", "open", "schedule"]
+  },
+  {
+    "category": "deadlines",
+    "questionList": ["deadline", "due", "submit", "submission"],
+    "answer": "The next submission deadline is Friday at 5pm. Late submissions may incur penalties.",
+    "keywords": ["deadline", "due", "submit", "submission"]
+  },
+  {
+    "category": "contacts",
+    "questionList": ["info desk", "contact desk", "reception", "phone", "email"],
+    "answer": "You can reach the info desk at +27 12 345 6789 or info@university.ac.za.",
+    "keywords": ["info desk", "contact", "reception", "phone", "email"]
+  },
+  {
+    "category": "emails",
+    "questionList": ["write an email", "compose email", "send email", "write message"],
+    "answer": "Use professional language, clear subject lines, and concise content. Avoid sending sensitive information.",
+    "keywords": ["email", "compose", "write", "send", "message"]
+  },
+  {
+    "category": "goodbye",
+    "questionList": ["goodbye", "bye", "see you", "farewell"],
+    "answer": "Goodbye! Have a nice day!",
+    "keywords": ["bye", "goodbye", "see you", "farewell"]
+  },
+  {
+    "category": "schedule",
+    "questionList": ["class schedule", "timetable", "classes", "lessons"],
+    "answer": "You can view your full class schedule in the timetable section.",
+    "keywords": ["schedule", "timetable", "classes", "lessons"]
+  },
+  {
+    "category": "campus",
+    "questionList": ["campus opening", "campus open", "opening hours"],
+    "answer": "The campus opens at 7:30am every weekday.",
+    "keywords": ["campus", "opening", "open", "hours"]
+  },
+  {
+    "category": "campus",
+    "questionList": ["campus closing", "campus close", "closing hours"],
+    "answer": "The campus closes at 7:00pm every weekday.",
+    "keywords": ["campus", "closing", "close", "hours"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["zandile gqada email", "email zandile gqada", "contact zandile gqada"],
+    "answer": "You can contact Lecturer Zandile GQADA at zandile.gqada@cput.ac.za",
+    "keywords": ["zandile", "gqada", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["zandile gqada office", "office zandile gqada", "room zandile gqada"],
+    "answer": "Lecturer Zandile GQADA's office is in Building A, Room 101",
+    "keywords": ["zandile", "gqada", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["ayodeji afolayan email", "email ayodeji afolayan", "contact ayodeji afolayan"],
+    "answer": "You can contact Lecturer Ayodeji AFOLAYAN at ayodeji.afolayan@cput.ac.za",
+    "keywords": ["ayodeji", "afolayan", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["ayodeji afolayan office", "office ayodeji afolayan", "room ayodeji afolayan"],
+    "answer": "Lecturer Ayodeji AFOLAYAN's office is in Building A, Room 102",
+    "keywords": ["ayodeji", "afolayan", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["richard maliwatu email", "email richard maliwatu", "contact richard maliwatu"],
+    "answer": "You can contact Lecturer Richard MALIWATU at richard.maliwatu@cput.ac.za",
+    "keywords": ["richard", "maliwatu", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["richard maliwatu office", "office richard maliwatu", "room richard maliwatu"],
+    "answer": "Lecturer Richard MALIWATU's office is in Building A, Room 103",
+    "keywords": ["richard", "maliwatu", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["nicole wessels email", "email nicole wessels", "contact nicole wessels"],
+    "answer": "You can contact Lecturer Nicole WESSELS at nicole.wessels@cput.ac.za",
+    "keywords": ["nicole", "wessels", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["nicole wessels office", "office nicole wessels", "room nicole wessels"],
+    "answer": "Lecturer Nicole WESSELS's office is in Building B, Room 201",
+    "keywords": ["nicole", "wessels", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["kirby america email", "email kirby america", "contact kirby america"],
+    "answer": "You can contact Lecturer Kirby AMERICA at kirby.america@cput.ac.za",
+    "keywords": ["kirby", "america", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["kirby america office", "office kirby america", "room kirby america"],
+    "answer": "Lecturer Kirby AMERICA's office is in Building B, Room 202",
+    "keywords": ["kirby", "america", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["itumeleng maine email", "email itumeleng maine", "contact itumeleng maine"],
+    "answer": "You can contact Lecturer Itumeleng MAINE at itumeleng.maine@cput.ac.za",
+    "keywords": ["itumeleng", "maine", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["itumeleng maine office", "office itumeleng maine", "room itumeleng maine"],
+    "answer": "Lecturer Itumeleng MAINE's office is in Building B, Room 203",
+    "keywords": ["itumeleng", "maine", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["bongisizwe buthelezi email", "email bongisizwe buthelezi", "contact bongisizwe buthelezi"],
+    "answer": "You can contact Lecturer Bongisizwe BUTHELEZI at bongisizwe.buthelezi@cput.ac.za",
+    "keywords": ["bongisizwe", "buthelezi", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["bongisizwe buthelezi office", "office bongisizwe buthelezi", "room bongisizwe buthelezi"],
+    "answer": "Lecturer Bongisizwe BUTHELEZI's office is in Building C, Room 301",
+    "keywords": ["bongisizwe", "buthelezi", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["aphiwe hlophe email", "email aphiwe hlophe", "contact aphiwe hlophe"],
+    "answer": "You can contact Lecturer Aphiwe HLOPHE at aphiwe.hlophe@cput.ac.za",
+    "keywords": ["aphiwe", "hlophe", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["aphiwe hlophe office", "office aphiwe hlophe", "room aphiwe hlophe"],
+    "answer": "Lecturer Aphiwe HLOPHE's office is in Building C, Room 302",
+    "keywords": ["aphiwe", "hlophe", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["rebecca bure email", "email rebecca bure", "contact rebecca bure"],
+    "answer": "You can contact Lecturer Rebecca BURE at rebecca.bure@cput.ac.za",
+    "keywords": ["rebecca", "bure", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["rebecca bure office", "office rebecca bure", "room rebecca bure"],
+    "answer": "Lecturer Rebecca BURE's office is in Building C, Room 303",
+    "keywords": ["rebecca", "bure", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["wendal koopman email", "email wendal koopman", "contact wendal koopman"],
+    "answer": "You can contact Lecturer Wendal KOOPMAN at wendal.koopman@cput.ac.za",
+    "keywords": ["wendal", "koopman", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["wendal koopman office", "office wendal koopman", "room wendal koopman"],
+    "answer": "Lecturer Wendal KOOPMAN's office is in Building D, Room 401",
+    "keywords": ["wendal", "koopman", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["joseph akwunwa email", "email joseph akwunwa", "contact joseph akwunwa"],
+    "answer": "You can contact Lecturer Joseph AKWUNWA at joseph.akwunwa@cput.ac.za",
+    "keywords": ["joseph", "akwunwa", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["joseph akwunwa office", "office joseph akwunwa", "room joseph akwunwa"],
+    "answer": "Lecturer Joseph AKWUNWA's office is in Building D, Room 402",
+    "keywords": ["joseph", "akwunwa", "office", "room", "building"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["william olivier email", "email william olivier", "contact william olivier"],
+    "answer": "You can contact Lecturer William OLIVIER at william.olivier@cput.ac.za",
+    "keywords": ["william", "olivier", "email", "contact"]
+  },
+  {
+    "category": "lecturers",
+    "questionList": ["william olivier office", "office william olivier", "room william olivier"],
+    "answer": "Lecturer William OLIVIER's office is in Building D, Room 403",
+    "keywords": ["william", "olivier", "office", "room", "building"]
+  }
+]
