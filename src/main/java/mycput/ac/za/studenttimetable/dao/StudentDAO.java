@@ -10,6 +10,7 @@ import java.sql.*;
 import javax.swing.JOptionPane;
 import java.util.ArrayList;
 import java.util.List;
+import mycput.ac.za.studenttimetable.domain.NotificationsDomain;
 
 public class StudentDAO {
 
@@ -318,5 +319,7 @@ public void deleteStudent(String studentId) throws SQLException {
         con.setAutoCommit(true);
     }
 }
+
+
 
 }
