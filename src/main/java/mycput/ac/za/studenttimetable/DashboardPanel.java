@@ -16,6 +16,13 @@ public class DashboardPanel extends JPanel {
 
     private HeaderBannerPanel headerPanel;
 
+    // ================= COLORS =================
+    private static final Color PRIMARY_BG = new Color(0xD6EEFF);
+    private static final Color CARD_BG = new Color(0xFFFFFF);
+    private static final Color CTA_PRIMARY = new Color(0xE7404A);
+    private static final Color CTA_SECONDARY = new Color(0x1996CC);
+    private static final Color SHADOW_COLOR = new Color(0, 0, 0, 30);
+
     public DashboardPanel() {
         this(null, null, null);
     }
@@ -26,7 +33,7 @@ public class DashboardPanel extends JPanel {
         this.groupId = groupId;
 
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245));
+        setBackground(PRIMARY_BG);
 
         // Header
         headerPanel = new HeaderBannerPanel(connectionProvider, studentId);
@@ -48,7 +55,7 @@ public class DashboardPanel extends JPanel {
     // ===================== MAIN CONTENT =====================
     private JPanel createMainContent() {
         JPanel mainContent = new JPanel(new GridBagLayout());
-        mainContent.setBackground(getBackground());
+        mainContent.setBackground(PRIMARY_BG);
         mainContent.setBorder(new EmptyBorder(10, 15, 10, 15));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -59,7 +66,7 @@ public class DashboardPanel extends JPanel {
 
         // === Row 1 ===
         gbc.gridx = 0; gbc.gridy = 0;
-        mainContent.add(createGradientCard("Today's Overview",
+        mainContent.add(createCard("Today's Overview",
                 new String[]{"Next class: Software Engineering at 10:00 AM",
                         "Location: Room 205, Building B",
                         "Lecturer: Dr. Smith"}), gbc);
@@ -81,14 +88,14 @@ public class DashboardPanel extends JPanel {
         mainContent.add(createProgressCard("Lecture Attendance", new String[]{"Attended", "Total"}, new int[]{45, 50}), gbc);
 
         gbc.gridx = 1;
-        mainContent.add(createGradientCard("Upcoming Assignments", new String[]{
+        mainContent.add(createCard("Upcoming Assignments", new String[]{
                 "Database Project - Due 12 Oct (High)",
                 "Networking Quiz - Due 10 Oct (Medium)",
                 "Software Eng Assignment - Due 15 Oct (Low)"
         }), gbc);
 
         gbc.gridx = 2;
-        mainContent.add(createGradientCard("Subjects", new String[]{
+        mainContent.add(createCard("Subjects", new String[]{
                 "Software Engineering",
                 "Database Systems",
                 "Networking Fundamentals",
@@ -98,7 +105,7 @@ public class DashboardPanel extends JPanel {
 
         // === Row 3 ===
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 3;
-        mainContent.add(createGradientCard("Notifications", new String[]{
+        mainContent.add(createCard("Notifications", new String[]{
                 "Room change for Networking class",
                 "Software Eng lecture canceled",
                 "Timetable update available",
@@ -111,7 +118,7 @@ public class DashboardPanel extends JPanel {
     // ===================== FOOTER BUTTONS =====================
     private JPanel createFooterButtons() {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-        buttonPanel.setBackground(getBackground());
+        buttonPanel.setBackground(PRIMARY_BG);
 
         buttonPanel.add(createStyledButton("Blackboard", "https://myclassroom.cput.ac.za/"));
         buttonPanel.add(createStyledButton("Outlook", "https://outlook.office.com"));
@@ -121,22 +128,25 @@ public class DashboardPanel extends JPanel {
 
     private JButton createStyledButton(String text, String url) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Poppins", Font.BOLD, 13));
-        btn.setBackground(new Color(41, 128, 185));
+        btn.setFont(new Font("Roboto", Font.BOLD, 13));
+        btn.setBackground(CTA_PRIMARY);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
         btn.setPreferredSize(new Dimension(130, 38));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createEmptyBorder());
+        btn.setOpaque(true);
 
+        // Hover effect
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(52, 152, 219));
+                btn.setBackground(CTA_SECONDARY);
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(41, 128, 185));
+                btn.setBackground(CTA_PRIMARY);
             }
         });
 
@@ -150,129 +160,99 @@ public class DashboardPanel extends JPanel {
     }
 
     // ===================== CARDS =====================
-private JPanel createGradientCard(String title, String[] lines) {
-    JPanel panel = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    private JPanel createCard(String title, String[] lines) {
+        JPanel panel = new JPanel();
+        panel.setOpaque(true);
+        panel.setBackground(CARD_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(15, 15, 15, 15),
+                BorderFactory.createLineBorder(SHADOW_COLOR, 1, true)
+        ));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setPreferredSize(new Dimension(300, 200));
 
-            // Smooth blue gradient from top to bottom
-            GradientPaint gp = new GradientPaint(
-                    0, 0, new Color(41, 128, 185),       // top blue
-                    0, getHeight(), new Color(72, 196, 230) // bottom lighter blue
-            );
-            g2.setPaint(gp);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Roboto", Font.BOLD, 18));
+        titleLabel.setForeground(CTA_SECONDARY);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(10));
 
-            g2.dispose();
-            super.paintComponent(g);
+        for (String line : lines) {
+            JLabel lbl = new JLabel("<html><p style='width:280px; color:#333333'>" + line + "</p></html>");
+            lbl.setFont(new Font("Roboto", Font.PLAIN, 14));
+            lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(lbl);
+            panel.add(Box.createVerticalStrut(5));
         }
-    };
 
-    panel.setOpaque(false);
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(15, 15, 15, 15));
-    panel.setPreferredSize(new Dimension(560, 300));
-
-    // Title
-    JLabel titleLabel = new JLabel(title);
-    titleLabel.setFont(new Font("Poppins", Font.BOLD, 18));
-    titleLabel.setForeground(Color.WHITE);
-    titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    panel.add(titleLabel);
-    panel.add(Box.createVerticalStrut(10));
-
-    // Content lines
-    for (String line : lines) {
-        JLabel lbl = new JLabel("<html><p style='width:300px; color:white'>" + line + "</p></html>");
-        lbl.setFont(new Font("Poppins", Font.PLAIN, 14));
-        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(lbl);
-        panel.add(Box.createVerticalStrut(5));
+        return panel;
     }
 
-    return panel;
-}
+    private JPanel createTableCard(String title, String[][] data, String[] columns) {
+        JTable table = new JTable(data, columns);
+        table.setFillsViewportHeight(true);
+        table.setShowGrid(true);
+        table.setGridColor(new Color(220, 220, 220));
+        table.setRowHeight(28);
 
-private JPanel createTableCard(String title, String[][] data, String[] columns) {
-    JTable table = new JTable(data, columns);
-    table.setFillsViewportHeight(true);
-    table.setShowGrid(true);
-    table.setGridColor(new Color(220, 220, 220));
-    table.setRowHeight(28);
+        table.getTableHeader().setFont(new Font("Roboto", Font.BOLD, 14));
+        table.getTableHeader().setForeground(Color.WHITE);
+        table.getTableHeader().setBackground(CTA_SECONDARY);
 
-    table.getTableHeader().setFont(new Font("Poppins", Font.BOLD, 14));
-    table.getTableHeader().setForeground(Color.WHITE);
-    table.getTableHeader().setBackground(new Color(41, 128, 185));
-
-    table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable t, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
-            Component c = super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, column);
-            if (!isSelected) {
-                c.setBackground(row % 2 == 0 ? new Color(72, 196, 230, 60) : new Color(41, 128, 185, 40));
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(t, value, isSelected, hasFocus, row, column);
+                if (!isSelected) {
+                    c.setBackground(row % 2 == 0 ? new Color(220, 245, 255) : new Color(200, 235, 255));
+                }
+                setHorizontalAlignment(SwingConstants.CENTER);
+                setForeground(Color.DARK_GRAY);
+                setFont(new Font("Roboto", Font.PLAIN, 13));
+                return c;
             }
-            setHorizontalAlignment(SwingConstants.CENTER);
-            setForeground(Color.DARK_GRAY);
-            setFont(new Font("Poppins", Font.PLAIN, 13));
-            return c;
-        }
-    });
+        });
 
-    JScrollPane scroll = new JScrollPane(table);
-    scroll.setBorder(BorderFactory.createEmptyBorder());
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
 
-    JPanel panel = new JPanel(new BorderLayout()) {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(true);
+        panel.setBackground(CARD_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(12, 12, 12, 12),
+                BorderFactory.createLineBorder(SHADOW_COLOR, 1, true)
+        ));
+        panel.setPreferredSize(new Dimension(300, 200));
 
-            GradientPaint gp = new GradientPaint(
-                    0, 0, new Color(41, 128, 185),       // top blue
-                    0, getHeight(), new Color(72, 196, 230) // bottom lighter blue
-            );
-            g2.setPaint(gp);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+        JLabel lbl = new JLabel(title, SwingConstants.CENTER);
+        lbl.setFont(new Font("Roboto", Font.BOLD, 18));
+        lbl.setForeground(CTA_SECONDARY);
+        lbl.setBorder(new EmptyBorder(0, 0, 10, 0));
 
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    };
+        panel.add(lbl, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
 
-    panel.setOpaque(false);
-    panel.setBorder(new EmptyBorder(12, 12, 12, 12));
-    panel.setPreferredSize(new Dimension(560, 300));
-
-    JLabel lbl = new JLabel(title, SwingConstants.CENTER);
-    lbl.setFont(new Font("Poppins", Font.BOLD, 18));
-    lbl.setForeground(Color.WHITE);
-    lbl.setBorder(new EmptyBorder(0, 0, 10, 0));
-
-    panel.add(lbl, BorderLayout.NORTH);
-    panel.add(scroll, BorderLayout.CENTER);
-
-    return panel;
-}
-
+        return panel;
+    }
 
     private JPanel createProgressCard(String title, String[] subjects, int[] progress) {
-        JPanel panel = createGradientCard(title, new String[]{});
+        JPanel panel = createCard(title, new String[]{});
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         for (int i = 0; i < subjects.length; i++) {
             JLabel subjLabel = new JLabel(subjects[i]);
-            subjLabel.setFont(new Font("Poppins", Font.PLAIN, 14));
+            subjLabel.setFont(new Font("Roboto", Font.PLAIN, 14));
             subjLabel.setForeground(Color.DARK_GRAY);
             panel.add(subjLabel);
 
             JProgressBar bar = new JProgressBar(0, 100);
             bar.setValue(progress[i]);
             bar.setStringPainted(true);
-            bar.setForeground(new Color(72, 196, 181));
-            bar.setPreferredSize(new Dimension(380, 20));
+            bar.setForeground(CTA_SECONDARY);
+            bar.setPreferredSize(new Dimension(260, 20));
             bar.setBorder(BorderFactory.createLineBorder(new Color(180, 180, 180)));
             panel.add(bar);
             panel.add(Box.createVerticalStrut(8));
@@ -280,6 +260,4 @@ private JPanel createTableCard(String title, String[][] data, String[] columns) 
 
         return panel;
     }
-
-  
 }
