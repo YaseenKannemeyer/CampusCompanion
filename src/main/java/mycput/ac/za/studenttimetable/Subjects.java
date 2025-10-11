@@ -1,5 +1,5 @@
 package mycput.ac.za.studenttimetable;
-//working
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
@@ -17,9 +17,15 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
-import javax.swing.Timer;
 
 public class Subjects extends JPanel {
+
+    // ---------------- COLORS ----------------
+    private static final Color PRIMARY_BG = new Color(0xD6EEFF);
+    private static final Color CARD_BG = new Color(0xFFFFFF);
+    private static final Color CTA_PRIMARY = new Color(0xE7404A);
+    private static final Color CTA_SECONDARY = new Color(0x1996CC);
+    private static final Color SHADOW_COLOR = new Color(0, 0, 0, 30);
 
     public interface ConnectionProvider {
         Connection get() throws SQLException;
@@ -28,7 +34,6 @@ public class Subjects extends JPanel {
     private final ConnectionProvider connectionProvider;
     private DefaultTableModel model;
     private JTable table;
-    private JTextField search;
     private String studentId;
     private String studentGroup;
     private HeaderBannerPanel headerBanner;
@@ -43,160 +48,120 @@ public class Subjects extends JPanel {
     public Subjects(ConnectionProvider connectionProvider, String studentId, String studentGroup) {
         this.connectionProvider = Objects.requireNonNull(connectionProvider, "connectionProvider required");
         setLayout(new BorderLayout());
-        setOpaque(false);
+        setBackground(PRIMARY_BG);
         initUI();
         setStudent(studentId, studentGroup);
     }
 
     // ---------------- UI ------------------------
-private void initUI() {
-    // Header panel
-    headerBanner = new HeaderBannerPanel(connectionProvider, studentId);
-    add(headerBanner, BorderLayout.NORTH);
+    private void initUI() {
+        // Header
+        headerBanner = new HeaderBannerPanel(connectionProvider, studentId);
+        add(headerBanner, BorderLayout.NORTH);
 
-    // Card container with gradient
-    ModernCard card = new ModernCard(new Color(41, 128, 185), new Color(72, 196, 230));
-    card.setLayout(new BorderLayout());
-    card.setBorder(new EmptyBorder(40, 40, 40, 40));
+        // Card
+ModernCard card = new ModernCard(Color.decode("#D6EEFF"));
+        card.setLayout(new BorderLayout());
+        card.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-    // Title Block
-    JLabel hTitle = new JLabel("Subject Grade Calculator");
-    hTitle.setFont(getPoppins(28f, Font.BOLD));
-    hTitle.setForeground(Color.WHITE);
+        // Title block
+        JLabel hTitle = new JLabel("Subject Grade Calculator");
+        hTitle.setFont(getRoboto(24f, Font.BOLD));
+        hTitle.setForeground(CTA_SECONDARY);
 
-    JLabel hSub = new JLabel("Edit term marks and calculate final grades instantly.");
-    hSub.setFont(getPoppins(15f, Font.PLAIN));
-    hSub.setForeground(new Color(200, 220, 240));
+        JLabel hSub = new JLabel("Edit term marks and calculate final grades instantly.");
+        hSub.setFont(getRoboto(14f, Font.PLAIN));
+        hSub.setForeground(new Color(80, 80, 80));
 
-    JPanel titleBlock = new JPanel();
-    titleBlock.setOpaque(false);
-    titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
-    titleBlock.add(hTitle);
-    titleBlock.add(Box.createVerticalStrut(6));
-    titleBlock.add(hSub);
-    card.add(titleBlock, BorderLayout.NORTH);
+        JPanel titleBlock = new JPanel();
+        titleBlock.setOpaque(false);
+        titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
+        titleBlock.add(hTitle);
+        titleBlock.add(Box.createVerticalStrut(6));
+        titleBlock.add(hSub);
+        card.add(titleBlock, BorderLayout.NORTH);
 
-    // Table setup
-    model = createModel(new String[]{"Subject", "Code", "Final Grade"});
-    table = new JTable(model);
-    table.setRowHeight(48);
-    table.setFont(getPoppins(15f, Font.PLAIN));
-    table.setShowGrid(false);
-    table.setIntercellSpacing(new Dimension(0, 0));
-    table.setFillsViewportHeight(true);
-    table.setSelectionBackground(new Color(220, 235, 251));
-    table.setSelectionForeground(Color.BLACK);
+        // Table
+        model = createModel(new String[]{"Subject", "Code", "Final Grade"});
+        table = new JTable(model);
+        table.setRowHeight(46);
+        table.setFont(getRoboto(13f, Font.PLAIN));
+        table.setShowGrid(false);
+        table.setIntercellSpacing(new Dimension(0, 0));
+        table.setFillsViewportHeight(true);
+        table.setSelectionBackground(new Color(220, 235, 251));
+        table.setSelectionForeground(Color.BLACK);
 
-    JTableHeader th = table.getTableHeader();
-    th.setDefaultRenderer(new HeaderRenderer());
-    th.setReorderingAllowed(false);
-    th.setPreferredSize(new Dimension(th.getPreferredSize().width, 48));
+        JTableHeader th = table.getTableHeader();
+        th.setDefaultRenderer(new HeaderRenderer());
+        th.setReorderingAllowed(false);
+        th.setPreferredSize(new Dimension(th.getPreferredSize().width, 40));
 
-    table.setDefaultRenderer(Number.class, new DefaultTableCellRenderer() {{ setHorizontalAlignment(CENTER); }});
-    table.setDefaultRenderer(Object.class, new TableCellRenderer());
-    table.setDefaultEditor(Number.class, new NumericEditor());
-    table.getColumnModel().getColumn(table.getColumnCount() - 1).setCellRenderer(new FinalGradeRenderer());
+        table.setDefaultRenderer(Number.class, new DefaultTableCellRenderer() {{
+            setHorizontalAlignment(CENTER);
+        }});
+        table.setDefaultRenderer(Object.class, new TableCellRenderer());
+        table.setDefaultEditor(Number.class, new NumericEditor());
+        table.getColumnModel().getColumn(table.getColumnCount() - 1).setCellRenderer(new FinalGradeRenderer());
 
-    JScrollPane sp = new JScrollPane(table);
-    sp.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
-    sp.setPreferredSize(new Dimension(1000, 600));
-    sp.getVerticalScrollBar().setUI(new ModernScrollBarUI());
-    card.add(sp, BorderLayout.CENTER);
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+        sp.setPreferredSize(new Dimension(1000, 550));
+        sp.getVerticalScrollBar().setUI(new ModernScrollBarUI());
+        card.add(sp, BorderLayout.CENTER);
 
-    // Buttons
-    JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 8));
-    controls.setOpaque(false);
-    controls.add(createModernButton("Copy Grades", new Color(33,150,243), e -> copyToClipboard()));
-    controls.add(createModernButton("Export CSV", new Color(76,175,80), e -> exportCSV()));
-    controls.add(createModernButton("Export SVG", new Color(156,39,176), e -> exportSVG()));
-    controls.add(createModernButton("Calculate", new Color(255,193,7), e -> calculateAll()));
-    card.add(controls, BorderLayout.SOUTH);
-
-    // Center card
-    JPanel centerWrap = new JPanel(new GridBagLayout());
-    centerWrap.setOpaque(false);
-    centerWrap.add(card, new GridBagConstraints() {{
-        fill = GridBagConstraints.BOTH;
-        weightx = 1.0;
-        weighty = 1.0;
-    }});
-    add(centerWrap, BorderLayout.CENTER);
-
-    card.pulse();
-}
+        // Buttons
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 8));
+controls.setOpaque(false);
+controls.add(createStyledButton("Copy Grades", e -> copyToClipboard()));
+controls.add(createStyledButton("Export CSV", e -> exportCSV()));
+controls.add(createStyledButton("Export SVG", e -> exportSVG()));
+controls.add(createStyledButton("Calculate", e -> calculateAll()));
+card.add(controls, BorderLayout.SOUTH);
 
 
+        // Wrap card
+        JPanel centerWrap = new JPanel(new GridBagLayout());
+        centerWrap.setOpaque(false);
+        centerWrap.add(card, new GridBagConstraints() {{
+            fill = GridBagConstraints.BOTH;
+            weightx = 1.0;
+            weighty = 1.0;
+        }});
+        add(centerWrap, BorderLayout.CENTER);
 
-//    private JPanel buildHeader() {
-//        JPanel p = new JPanel(new BorderLayout());
-//        p.setOpaque(false);
-//        p.setBorder(new EmptyBorder(18, 18, 6, 18));
-//
-//        JLabel appTitle = new JLabel("📘 My Subjects");
-//        appTitle.setFont(getPoppins(18f, Font.BOLD));
-//        appTitle.setForeground(new Color(33, 37, 41));
-//
-//        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-//        right.setOpaque(false);
-//
-//        search = new JTextField(18);
-//        search.setPreferredSize(new Dimension(240, 34));
-//        search.setFont(getPoppins(13f, Font.PLAIN));
-//        search.setBorder(BorderFactory.createCompoundBorder(
-//                BorderFactory.createLineBorder(new Color(180,180,180),1,true),
-//                new EmptyBorder(6, 12, 6, 12)));
-//        search.setToolTipText("Filter subjects...");
-//        search.getDocument().addDocumentListener(new DocumentListener() {
-//            private void filter() {
-//                if (model == null) return;
-//                String txt = search.getText().trim();
-//                TableRowSorter<TableModel> sorter = new TableRowSorter<>(model);
-//                if (txt.isEmpty()) sorter.setRowFilter(null);
-//                else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(txt), 0));
-//                table.setRowSorter(sorter);
-//            }
-//            public void insertUpdate(DocumentEvent e) { filter(); }
-//            public void removeUpdate(DocumentEvent e) { filter(); }
-//            public void changedUpdate(DocumentEvent e) { filter(); }
-//        });
-//
-//// Create a search emoji label
-//JLabel searchIcon = new JLabel("🔍");
-//searchIcon.setFont(new Font("SansSerif", Font.PLAIN, 16)); // adjust size
-//searchIcon.setBorder(new EmptyBorder(0, 5, 0, 5)); // spacing
-//
-//// Wrap emoji and search field in a panel
-//JPanel searchPanel = new JPanel(new BorderLayout());
-//searchPanel.setOpaque(false);
-//searchPanel.add(searchIcon, BorderLayout.WEST);
-//searchPanel.add(search, BorderLayout.CENTER);
-//
-//// Add the wrapped panel to the header
-//right.add(searchPanel);
-//        p.add(appTitle, BorderLayout.WEST);
-//        p.add(right, BorderLayout.EAST);
-//        return p;
-//    }
+        card.pulse();
+    }
 
-    private JButton createModernButton(String text, Color color, java.awt.event.ActionListener listener){
+    private JButton createStyledButton(String text, java.awt.event.ActionListener listener) {
     JButton btn = new JButton(text);
-    btn.setFont(getPoppins(13f, Font.BOLD));
-    btn.setBackground(color);
+    btn.setFont(new Font("Roboto", Font.BOLD, 13));
+    btn.setBackground(CTA_PRIMARY);
     btn.setForeground(Color.WHITE);
     btn.setFocusPainted(false);
-    btn.setBorder(new EmptyBorder(10, 20, 10, 20));
-    btn.addActionListener(listener);
-    btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    btn.setPreferredSize(new Dimension(130, 38));
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    btn.setBorder(BorderFactory.createEmptyBorder());
+    btn.setOpaque(true);
 
-    // Smooth hover
+    // Hover effect
     btn.addMouseListener(new java.awt.event.MouseAdapter() {
         @Override
-        public void mouseEntered(java.awt.event.MouseEvent e){ btn.setBackground(color.brighter()); }
+        public void mouseEntered(java.awt.event.MouseEvent e) {
+            btn.setBackground(CTA_SECONDARY);
+        }
+
         @Override
-        public void mouseExited(java.awt.event.MouseEvent e){ btn.setBackground(color); }
+        public void mouseExited(java.awt.event.MouseEvent e) {
+            btn.setBackground(CTA_PRIMARY);
+        }
     });
+
+    btn.addActionListener(listener);
     return btn;
 }
+
+
     private class RoundedBorder implements javax.swing.border.Border {
         private final int radius; RoundedBorder(int r){radius=r;}
         @Override public Insets getBorderInsets(Component c){ return new Insets(radius,radius,radius,radius);}
@@ -207,120 +172,108 @@ private void initUI() {
         }
     }
 
-    // Header refinements
-private static class HeaderRenderer extends DefaultTableCellRenderer {
-    HeaderRenderer(){
-        setHorizontalAlignment(SwingConstants.CENTER);
-        setOpaque(true);
-        setBorder(new EmptyBorder(10,8,10,8));
-        setFont(new Font("Poppins",Font.BOLD,14));
-        setForeground(Color.WHITE);
-        setBackground(new Color(41,128,185));
-    }
-}
-
-private class TableCellRenderer extends DefaultTableCellRenderer {
-    @Override
-    public Component getTableCellRendererComponent(JTable table,Object value,
-                                                   boolean isSelected,boolean hasFocus,
-                                                   int row,int column){
-        Component c = super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
-        if(!isSelected) c.setBackground(row%2==0 ? new Color(72,196,230,60) : new Color(41,128,185,40));
-        setBorder(new EmptyBorder(6,12,6,12));
-        setHorizontalAlignment(column==0 ? LEFT : CENTER);
-        setForeground(Color.BLACK);
-        return c;
-    }
-}
-
     // ---------------- Table + Scrollbar Styling ----------------
-private static class ModernScrollBarUI extends BasicScrollBarUI {
-    @Override protected void configureScrollBarColors(){
-        thumbColor = new Color(185,186,163);
-        trackColor = new Color(214,213,201);
+    private static class HeaderRenderer extends DefaultTableCellRenderer {
+        HeaderRenderer(){
+            setHorizontalAlignment(SwingConstants.CENTER);
+            setOpaque(true);
+            setBorder(new EmptyBorder(6,8,6,8));
+            setFont(new Font("Roboto",Font.BOLD,13));
+            setForeground(Color.WHITE);
+            setBackground(CTA_SECONDARY);
+        }
     }
-}
 
-    private Font getPoppins(float size,int style){
-        Font f = new Font("Poppins",style,(int)size);
-        if(!f.getFamily().equals("Poppins")) f = new Font("SansSerif",style,(int)size);
+    private class TableCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table,Object value,
+                                                       boolean isSelected,boolean hasFocus,
+                                                       int row,int column){
+            Component c = super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
+            if(!isSelected) c.setBackground(row%2==0 ? new Color(214,238,255,100) : new Color(198,220,240,80));
+            setBorder(new EmptyBorder(6,12,6,12));
+            setHorizontalAlignment(column==0 ? LEFT : CENTER);
+            setForeground(Color.BLACK);
+            return c;
+        }
+    }
+
+    private static class ModernScrollBarUI extends BasicScrollBarUI {
+        @Override protected void configureScrollBarColors(){
+            thumbColor = new Color(185,186,163);
+            trackColor = new Color(214,213,201);
+        }
+    }
+
+    private Font getRoboto(float size,int style){
+        Font f = new Font("Roboto",style,(int)size);
+        if(!f.getFamily().equals("Roboto")) f = new Font("SansSerif",style,(int)size);
         return f.deriveFont(size);
     }
 
     // ---------------- Functional ----------------
     public void setStudent(String studentId, String studentGroup) {
-    this.studentId = studentId;
-    this.studentGroup = studentGroup;
+        this.studentId = studentId;
+        this.studentGroup = studentGroup;
 
-    // Update header panel
-    if (headerBanner != null) {
-        headerBanner.setStudentId(studentId);  // we'll add this method in HeaderBannerPanel
+        if (headerBanner != null) headerBanner.setStudentId(studentId);
+        reloadFromDB();
     }
-
-    reloadFromDB();
-}
-
 
     private void reloadFromDB() {
-    if (studentGroup == null || studentGroup.isEmpty()) {
-        model.setRowCount(0);
-        model.setColumnCount(0);
-        return;
-    }
-
-    List<DbSubject> subjects = fetchSubjects();
-    if (subjects.isEmpty()) {
-        // fallback demo subjects
-        subjects.add(new DbSubject("SUB101", "Sample Subject 1"));
-        subjects.add(new DbSubject("SUB102", "Sample Subject 2"));
-    }
-
-    // clear previous data
-    dynamicAssessmentLabels.clear();
-    labelToColumnIndex.clear();
-    subjectLabelWeights.clear();
-    subjectLabelTermIds.clear();
-    rowSubjectCodes.clear();
-
-    int colIndex = 2; // start AFTER Subject (0) + Subject Code (1)
-    Map<String, Map<Integer, Double>> marks = new HashMap<>();
-
-    for (DbSubject s : subjects) {
-        List<DbTerm> terms = fetchTerms(s.code);
-        if (terms.isEmpty()) {
-            // fallback demo terms
-            terms.add(new DbTerm(1, "Term 1", 1.0));
-            terms.add(new DbTerm(2, "Term 2", 1.0));
-            terms.add(new DbTerm(3, "Term 3", 1.0));
-            terms.add(new DbTerm(4, "Term 4", 1.0));
+        if (studentGroup == null || studentGroup.isEmpty()) {
+            model.setRowCount(0);
+            model.setColumnCount(0);
+            return;
         }
 
-        Map<String, Double> weights = new HashMap<>();
-        Map<String, Integer> lblToTermId = new HashMap<>();
+        List<DbSubject> subjects = fetchSubjects();
+        if (subjects.isEmpty()) {
+            subjects.add(new DbSubject("SUB101", "Sample Subject 1"));
+            subjects.add(new DbSubject("SUB102", "Sample Subject 2"));
+        }
 
-        for (DbTerm t : terms) {
-            if (!dynamicAssessmentLabels.contains(t.label)) {
-                dynamicAssessmentLabels.add(t.label);
-                labelToColumnIndex.put(t.label, colIndex++);
+        dynamicAssessmentLabels.clear();
+        labelToColumnIndex.clear();
+        subjectLabelWeights.clear();
+        subjectLabelTermIds.clear();
+        rowSubjectCodes.clear();
+
+        int colIndex = 2; // after Subject and Code
+        Map<String, Map<Integer, Double>> marks = new HashMap<>();
+
+        for (DbSubject s : subjects) {
+            List<DbTerm> terms = fetchTerms(s.code);
+            if (terms.isEmpty()) {
+                terms.add(new DbTerm(1, "Term 1", 1.0));
+                terms.add(new DbTerm(2, "Term 2", 1.0));
+                terms.add(new DbTerm(3, "Term 3", 1.0));
+                terms.add(new DbTerm(4, "Term 4", 1.0));
             }
-            weights.put(t.label, t.weight);
-            lblToTermId.put(t.label, t.id);
+
+            Map<String, Double> weights = new HashMap<>();
+            Map<String, Integer> lblToTermId = new HashMap<>();
+
+            for (DbTerm t : terms) {
+                if (!dynamicAssessmentLabels.contains(t.label)) {
+                    dynamicAssessmentLabels.add(t.label);
+                    labelToColumnIndex.put(t.label, colIndex++);
+                }
+                weights.put(t.label, t.weight);
+                lblToTermId.put(t.label, t.id);
+            }
+
+            subjectLabelWeights.put(s.code, weights);
+            subjectLabelTermIds.put(s.code, lblToTermId);
+
+            Map<Integer, Double> termMarks = new HashMap<>();
+            for (DbTerm t : terms) termMarks.put(t.id, Math.random() * 100);
+            marks.put(s.code, termMarks);
         }
 
-        subjectLabelWeights.put(s.code, weights);
-        subjectLabelTermIds.put(s.code, lblToTermId);
-
-        // generate demo marks
-        Map<Integer, Double> termMarks = new HashMap<>();
-        for (DbTerm t : terms) termMarks.put(t.id, Math.random() * 100);
-        marks.put(s.code, termMarks);
+        buildTable(subjects, marks);
+        setColumnWidths();
     }
-
-    // build table
-    buildTable(subjects, marks);
-    setColumnWidths();
-}
-
 
     private List<DbSubject> fetchSubjects() {
         List<DbSubject> subjects = new ArrayList<>();
@@ -333,7 +286,7 @@ private static class ModernScrollBarUI extends BasicScrollBarUI {
         } catch (SQLException ignored) {}
         if (courseId == null) return subjects;
 
-        int yearLevel = 1; 
+        int yearLevel = 1;
         try { yearLevel = Integer.parseInt(studentGroup.substring(0,1)); } catch (Exception ignored) {}
         try (Connection conn = connectionProvider.get();
              PreparedStatement ps = conn.prepareStatement(
@@ -341,8 +294,8 @@ private static class ModernScrollBarUI extends BasicScrollBarUI {
                              "JOIN SubjectCourse sc ON s.SubjectCode = sc.SubjectCode " +
                              "WHERE sc.CourseID=? AND s.YearLevel=? ORDER BY s.SubjectName")) {
             ps.setString(1, courseId); ps.setInt(2, yearLevel);
-            try (ResultSet rs = ps.executeQuery()) { 
-                while (rs.next()) subjects.add(new DbSubject(rs.getString("SubjectCode"), rs.getString("SubjectName"))); 
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) subjects.add(new DbSubject(rs.getString("SubjectCode"), rs.getString("SubjectName")));
             }
         } catch (SQLException ignored) {}
         return subjects;
@@ -360,54 +313,47 @@ private static class ModernScrollBarUI extends BasicScrollBarUI {
         return terms;
     }
 
-   private void buildTable(List<DbSubject> subjects, Map<String, Map<Integer, Double>> marks) {
-    // Columns: Subject | Subject Code | Dynamic Terms... | Final Grade
-    List<String> cols = new ArrayList<>();
-    cols.add("Subject");
-    cols.add("Subject Code");
-    cols.addAll(dynamicAssessmentLabels);
-    cols.add("Final Grade");
+    private void buildTable(List<DbSubject> subjects, Map<String, Map<Integer, Double>> marks) {
+        List<String> cols = new ArrayList<>();
+        cols.add("Subject");
+        cols.add("Subject Code");
+        cols.addAll(dynamicAssessmentLabels);
+        cols.add("Final Grade");
 
-    model.setDataVector(new Object[0][0], cols.toArray());
-    rowSubjectCodes.clear();
+        model.setDataVector(new Object[0][0], cols.toArray());
+        rowSubjectCodes.clear();
 
-    for (DbSubject s : subjects) {
-        rowSubjectCodes.add(s.code);
-        Object[] row = new Object[cols.size()];
+        for (DbSubject s : subjects) {
+            rowSubjectCodes.add(s.code);
+            Object[] row = new Object[cols.size()];
 
-        // Subject info
-        row[0] = s.name;
-        row[1] = s.code;
+            row[0] = s.name;
+            row[1] = s.code;
 
-        // dynamic term marks
-        Map<Integer, Double> m = marks.getOrDefault(s.code, Collections.emptyMap());
-        for (String lbl : dynamicAssessmentLabels) {
-            Integer col = labelToColumnIndex.get(lbl);
-            if (col == null) continue;
-            Integer tid = subjectLabelTermIds.getOrDefault(s.code, Collections.emptyMap()).get(lbl);
-            row[col] = (tid != null) ? m.getOrDefault(tid, null) : null;
+            Map<Integer, Double> m = marks.getOrDefault(s.code, Collections.emptyMap());
+            for (String lbl : dynamicAssessmentLabels) {
+                Integer col = labelToColumnIndex.get(lbl);
+                if (col == null) continue;
+                Integer tid = subjectLabelTermIds.getOrDefault(s.code, Collections.emptyMap()).get(lbl);
+                row[col] = (tid != null) ? m.getOrDefault(tid, null) : null;
+            }
+
+            model.addRow(row);
+            int newRow = model.getRowCount() - 1;
+            model.setValueAt(computeFinalForRow(newRow, s.code), newRow, row.length - 1);
         }
-
-        model.addRow(row);
-
-        // compute final grade
-        int newRow = model.getRowCount() - 1;
-        model.setValueAt(computeFinalForRow(newRow, s.code), newRow, row.length - 1);
     }
-}
 
-
-    
     private void setColumnWidths() {
-    if (table.getColumnModel().getColumnCount() == 0) return;
+        if (table.getColumnModel().getColumnCount() == 0) return;
 
     TableColumnModel colModel = table.getColumnModel();
 
     // First column (Subject)
     TableColumn col0 = colModel.getColumn(0);
-    col0.setPreferredWidth(470);  // width in pixels
+    col0.setPreferredWidth(500);  // width in pixels
     col0.setMinWidth(200);
-    col0.setMaxWidth(470);
+    col0.setMaxWidth(500);
     // Second column (Subject Code)
 TableColumn col1 = colModel.getColumn(1);
 col1.setPreferredWidth(130);  // adjust as needed
@@ -424,8 +370,7 @@ col1.setMaxWidth(130);
     }
 
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); // important
-}
-
+    }
 
     private double computeFinalForRow(int rowIndex, String subjectCode) {
         Map<String, Double> weights = subjectLabelWeights.getOrDefault(subjectCode, Collections.emptyMap());
@@ -445,15 +390,15 @@ col1.setMaxWidth(130);
         return 0.0;
     }
 
-    private double toDouble(Object val){ 
-        if(val instanceof Number) return ((Number)val).doubleValue(); 
-        if(val!=null) try{ return Double.parseDouble(val.toString()); }catch(Exception ignored){} 
-        return 0.0; 
+    private double toDouble(Object val){
+        if(val instanceof Number) return ((Number)val).doubleValue();
+        if(val!=null) try{ return Double.parseDouble(val.toString()); }catch(Exception ignored){}
+        return 0.0;
     }
 
-    private void calculateAll(){ 
-        for(int i=0;i<model.getRowCount();i++) 
-            model.setValueAt(computeFinalForRow(i,rowSubjectCodes.get(i)),i,model.getColumnCount()-1); 
+    private void calculateAll(){
+        for(int i=0;i<model.getRowCount();i++)
+            model.setValueAt(computeFinalForRow(i,rowSubjectCodes.get(i)),i,model.getColumnCount()-1);
     }
 
     private void copyToClipboard() {
@@ -491,109 +436,48 @@ col1.setMaxWidth(130);
         catch(IOException ex){ ex.printStackTrace(); }
     }
 
-    private DefaultTableModel createModel(String[] columns) {
-    return new DefaultTableModel(columns, 0) {
-        @Override
-        public boolean isCellEditable(int row, int col) {
-            int last = getColumnCount() - 1;
-            return col > 1 && col < last; // now only dynamic assessment columns are editable
-        }
-
-        @Override
-        public Class<?> getColumnClass(int col) {
-            // Subject and Subject Code are Strings, all others are Double
-            if (col == 0 || col == 1) return String.class;
-            return Double.class;
-        }
-    };
-}
-
-
-    private static Double getNullableDouble(ResultSet rs,String col) throws SQLException{ BigDecimal bd=rs.getBigDecimal(col); return bd!=null?bd.doubleValue():0.0; }
-    private static String safe(String s){ return s==null?"":s.trim(); }
-
-    // ---------------- UI Helpers ----------------
-    private class FinalGradeRenderer extends DefaultTableCellRenderer {
-        FinalGradeRenderer(){ setHorizontalAlignment(SwingConstants.CENTER);}
-        @Override public Component getTableCellRendererComponent(JTable table,Object value,boolean sel,boolean focus,int row,int col){
-            Component c = super.getTableCellRendererComponent(table,value,sel,focus,row,col);
-            if(value instanceof Number){
-                double g = ((Number)value).doubleValue();
-                setText(gradeFmt.format(g));
-                if(g>=75)c.setForeground(new Color(27,150,84));
-                else if(g>=50)c.setForeground(new Color(245,140,31));
-                else c.setForeground(new Color(220,53,69));
-            } else setText("-");
-            return c;
-        }
-    }
-
-    private class NumericEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JSpinner spinner;
-        NumericEditor(){
-            spinner = new JSpinner(new SpinnerNumberModel(0.0,0.0,100.0,1.0));
-            JComponent editor = spinner.getEditor();
-            if(editor instanceof JSpinner.DefaultEditor)((JSpinner.DefaultEditor)editor).getTextField().setHorizontalAlignment(SwingConstants.CENTER);
-            spinner.setBorder(new EmptyBorder(0,4,0,4));
-        }
-        @Override public Object getCellEditorValue(){ return spinner.getValue(); }
-        @Override public Component getTableCellEditorComponent(JTable table,Object value,boolean sel,int row,int col){
-            if(value instanceof Number) spinner.setValue(((Number)value).doubleValue());
-            else if(value!=null) try { spinner.setValue(Double.parseDouble(value.toString())); } catch(Exception ignored){ spinner.setValue(0.0); }
-            return spinner;
-        }
-    }
-
-    // ---------------- ModernCard with gradient ----------------
-private class ModernCard extends JPanel {
-    private final Color top, bottom;
-    private int pulse = 0;
-
-    ModernCard(Color top, Color bottom) {
-        this.top = top;
-        this.bottom = bottom;
-        setOpaque(false);
-        setPreferredSize(new Dimension(920, 600));
-    }
-
-    void pulse() {
-        Timer t = new Timer(18,null);
-        t.addActionListener(new AbstractAction() {
-            int step=0;
-            @Override
-            public void actionPerformed(ActionEvent e){
-                step++;
-                pulse=(int)(6*Math.sin(step*Math.PI/40.0));
-                repaint();
-                if(step>80){((Timer)e.getSource()).stop(); pulse=0; repaint();}
+    private DefaultTableModel createModel(String[] columns){
+        return new DefaultTableModel(null,columns){
+            @Override public boolean isCellEditable(int row,int column){
+                return column>1 && column<getColumnCount()-1;
             }
-        });
-        t.start();
+            @Override public Class<?> getColumnClass(int columnIndex){
+                if(columnIndex>1 && columnIndex<getColumnCount()-1) return Number.class;
+                return Object.class;
+            }
+        };
     }
 
-    @Override
-    protected void paintComponent(Graphics g){
-        int w=getWidth(),h=getHeight();
-        Graphics2D g2=(Graphics2D)g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+    private double getNullableDouble(ResultSet rs, String col) throws SQLException {
+        double d = rs.getDouble(col);
+        return rs.wasNull() ? 0 : d;
+    }
 
-        // Shadow layers
-        for(int i=0;i<8;i++){
-            int alpha=20-i*2;
-            g2.setColor(new Color(0,0,0,Math.max(0,alpha)));
-            int x=8-i+pulse/2,y=8-i+Math.abs(pulse/3);
-            g2.fillRoundRect(x,y,w-(8-i)*2,h-(8-i)*2,18,18);
+    private String safe(String s){ return s==null?"":s; }
+
+    // ---------------- Models ----------------
+    private static class DbSubject {
+        String code,name; DbSubject(String c,String n){code=c;name=n;}
+    }
+    private static class DbTerm { int id; String label; double weight; DbTerm(int i,String l,double w){id=i;label=l;weight=w;} }
+
+    private static class FinalGradeRenderer extends DefaultTableCellRenderer{
+        @Override public Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int column){
+            JLabel lbl=(JLabel)super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            if(value instanceof Number){
+                double g=((Number)value).doubleValue();
+                if(g>=75) lbl.setForeground(new Color(0,128,0));
+                else if(g>=50) lbl.setForeground(new Color(255,140,0));
+                else lbl.setForeground(Color.RED);
+                lbl.setText(String.format("%.1f", g));
+            }
+            return lbl;
         }
-
-        // Gradient background
-        GradientPaint gp = new GradientPaint(0,0,top,0,h,bottom);
-        g2.setPaint(gp);
-        g2.fillRoundRect(0,0,w-12,h-12,18,18);
-
-        g2.dispose();
-        super.paintComponent(g);
     }
-}
-    public static class DbSubject { final String code,name; DbSubject(String c,String n){code=c;name=n;} }
-    public static class DbTerm { final int id; final String label; final double weight; DbTerm(int id,String label,double w){this.id=id;this.label=label;this.weight=w;} }
+
+    private static class NumericEditor extends DefaultCellEditor {
+        NumericEditor(){super(new JTextField()); ((JTextField)getComponent()).setHorizontalAlignment(SwingConstants.CENTER);}
+        @Override public Object getCellEditorValue(){ try{return Double.parseDouble(((JTextField)getComponent()).getText());}catch(Exception e){return 0.0;}}
+    }
 }
