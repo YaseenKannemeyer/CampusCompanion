@@ -22,7 +22,7 @@ public class StudentTimeTable extends JFrame {
     public StudentTimeTable() {
         super("📅 Weekly Timetable");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1100, 700);
+        setSize(1200, 750);
         setLocationRelativeTo(null);
         setLayout(null); // for sliding login/signup panels
 
