@@ -17,50 +17,53 @@ import mycput.ac.za.studenttimetable.domain.SubjectDomain;
 public class SettingsPanel extends JPanel {
 
     private final Subjects.ConnectionProvider connectionProvider;
-
     private HeaderBannerPanel headerPanel;
+
     private DefaultListModel<SubjectDomain> subjectListModel;
     private JList<SubjectDomain> subjectList;
 
     private StudentDAO studentDAO;
-
     private String studentId;
     private String studentGroup;
 
-    // ===================== ACCOUNT LABELS =====================
+    // ================= COLORS =================
+    private static final Color PRIMARY_BG = new Color(0xD6EEFF);
+    private static final Color CARD_BG = new Color(0xFFFFFF);
+    private static final Color CTA_PRIMARY = new Color(0xE7404A);
+    private static final Color CTA_SECONDARY = new Color(0x1996CC);
+    private static final Color SHADOW_COLOR = new Color(0, 0, 0, 30);
+
+    // ================= ACCOUNT LABELS =================
     private JLabel lblStudentID, lblFullName, lblEmail, lblGroup, lblCourse;
 
     public SettingsPanel(Subjects.ConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
-
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245));
+        setBackground(PRIMARY_BG);
 
-        // Header placeholder
+        // Header
         headerPanel = new HeaderBannerPanel(connectionProvider, null);
         add(headerPanel, BorderLayout.NORTH);
 
-        // Initialize DAOs
-        try {
-            studentDAO = new StudentDAO();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to connect to database: " + e.getMessage(),
+        // Initialize DAO
+        try { studentDAO = new StudentDAO(); }
+        catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(),
                     "DB Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        // Main content
         add(createMainContent(), BorderLayout.CENTER);
     }
 
-    // ================== SET CURRENT STUDENT ==================
+    // ================= SET STUDENT =================
     public void setStudent(String studentId, String studentGroup) {
         this.studentId = studentId;
         this.studentGroup = studentGroup;
 
+        headerPanel.setStudentId(studentId);
+
         if (studentId != null) {
-            headerPanel.setStudentId(studentId);
-            refreshAccountInfo();  // load/update labels
+            refreshAccountInfo();
             if (subjectListModel != null) loadStudentSubjects();
         } else {
             clearAccountInfo();
@@ -68,75 +71,141 @@ public class SettingsPanel extends JPanel {
         }
     }
 
-    // ===================== MAIN CONTENT =====================
+    // ================= MAIN CONTENT =================
     private JPanel createMainContent() {
-        JPanel main = new JPanel(new GridBagLayout());
-        main.setBackground(getBackground());
-        main.setBorder(new EmptyBorder(20, 20, 20, 20));
+    JPanel main = new JPanel(new GridBagLayout());
+    main.setBackground(PRIMARY_BG);
+    main.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 15, 15, 15);
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(12, 12, 12, 12);
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        main.add(createAccountCard(), gbc);
+    // ================= LEFT COLUMN (Account + Subjects) =================
+    JPanel leftColumn = new JPanel(new GridLayout(2, 1, 0, 15));
+    leftColumn.setOpaque(false);
+    leftColumn.add(createAccountCard());
+    leftColumn.add(createSubjectsCard());
 
-        gbc.gridx = 1; gbc.gridy = 0;
-        main.add(createSubjectsCard(), gbc);
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.weightx = 1.0;           // takes all extra space
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.BOTH; // expand fully
+    main.add(leftColumn, gbc);
 
-        return main;
-    }
+    // ================= RIGHT COLUMN (App Info) =================
+    JPanel rightColumn = createAboutCard();
 
-    // ===================== ACCOUNT CARD =====================
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.weightx = 0;           // only as wide as preferred
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.VERTICAL; // only stretch vertically
+    main.add(rightColumn, gbc);
+
+    return main;
+}
+
+
+
+    // ================= ACCOUNT CARD =================
     private JPanel createAccountCard() {
-        JPanel panel = createGradientCard("Account Settings");
+        JPanel panel = createCard("Account Management");
 
-        // ===================== INFO LABELS =====================
         lblStudentID = createInfoLabel("Student ID: Loading...");
-        lblFullName  = createInfoLabel("Full Name: Loading...");
-        lblEmail     = createInfoLabel("Email: Loading...");
-        lblGroup     = createInfoLabel("Group: Loading...");
-        lblCourse    = createInfoLabel("Course: Loading...");
+        lblFullName = createInfoLabel("Full Name: Loading...");
+        lblEmail = createInfoLabel("Email: Loading...");
+        lblGroup = createInfoLabel("Group: Loading...");
+        lblCourse = createInfoLabel("Course: Loading...");
 
         JPanel infoPanel = new JPanel();
         infoPanel.setOpaque(false);
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.add(lblStudentID);
-        infoPanel.add(Box.createVerticalStrut(6));
+        infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(lblFullName);
-        infoPanel.add(Box.createVerticalStrut(6));
+        infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(lblEmail);
-        infoPanel.add(Box.createVerticalStrut(6));
+        infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(lblGroup);
-        infoPanel.add(Box.createVerticalStrut(6));
+        infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(lblCourse);
 
-        // ===================== CHANGE PASSWORD =====================
-        JButton changePasswordBtn = createStyledButton("Change Password");
-        changePasswordBtn.setPreferredSize(new Dimension(200, 40));
-        changePasswordBtn.addActionListener(e -> handleChangePassword());
+        // Wrap infoPanel to prevent text clipping
+        JScrollPane scroll = new JScrollPane(infoPanel);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.setPreferredSize(new Dimension(0, 160)); // fixed height for consistency
+        panel.add(scroll);
 
-        // ===================== DELETE ACCOUNT =====================
-        JButton deleteBtn = createStyledButton("Delete Account");
-        deleteBtn.setBackground(new Color(192, 57, 43));
-        deleteBtn.setForeground(Color.WHITE);
-        deleteBtn.addActionListener(e -> handleDeleteAccount());
+        panel.add(Box.createVerticalStrut(15));
 
-        // ===================== ADD COMPONENTS =====================
-        panel.add(Box.createVerticalStrut(15));
-        panel.add(infoPanel);
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(changePasswordBtn);
-        panel.add(Box.createVerticalStrut(15));
-        panel.add(deleteBtn);
-        panel.add(Box.createVerticalStrut(10));
+        // Buttons
+        panel.add(createButtonPanel(
+                new String[]{"Change Password", "Delete Account"},
+                new Color[]{CTA_PRIMARY, new Color(192, 57, 43)},
+                new Color[]{CTA_SECONDARY, new Color(231, 76, 60)},
+                new Runnable[]{this::handleChangePassword, this::handleDeleteAccount}
+        ));
 
         return panel;
     }
 
-    // ===================== REFRESH ACCOUNT INFO =====================
+    // ================= SUBJECT CARD =================
+    private JPanel createSubjectsCard() {
+        JPanel panel = createCard("Subject Management");
+
+        subjectListModel = new DefaultListModel<>();
+        subjectList = new JList<>(subjectListModel);
+        subjectList.setFont(new Font("Roboto", Font.PLAIN, 13));
+        subjectList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        subjectList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof SubjectDomain s) label.setText(s.getSubjectCode() + " - " + s.getSubjectName());
+                return label;
+            }
+        });
+
+        JScrollPane scroll = new JScrollPane(subjectList);
+        scroll.setPreferredSize(new Dimension(0, 160)); // same height as account card
+        scroll.setBorder(null);
+        panel.add(scroll);
+
+        return panel;
+    }
+
+    // ================= ABOUT CARD =================
+    private JPanel createAboutCard() {
+    JPanel panel = createCard("Application Info");
+
+    JTextArea aboutText = new JTextArea(
+            "Student Timetable App v1.0\n" +
+            "Developed by: Your Name\n" +
+            "Purpose: Manage student account, subjects, and application settings.\n" +
+            "2025 © MyCPUT"
+    );
+    aboutText.setFont(new Font("Roboto", Font.PLAIN, 13));
+    aboutText.setEditable(false);
+    aboutText.setOpaque(false);
+    aboutText.setLineWrap(true);
+    aboutText.setWrapStyleWord(true);
+
+    panel.add(aboutText);
+
+    // Force preferred width so GridBagLayout allocates space
+    panel.setPreferredSize(new Dimension(400, 0)); // adjust 300px as needed
+    panel.setMinimumSize(new Dimension(400, 0));   // optional: minimum width
+
+    return panel;
+}
+
+
+    // ================= ACCOUNT REFRESH =================
     private void refreshAccountInfo() {
         if (studentId == null) return;
 
@@ -145,7 +214,6 @@ public class SettingsPanel extends JPanel {
             protected StudentDomain doInBackground() throws Exception {
                 return studentDAO.getStudentProfile(studentId);
             }
-
             @Override
             protected void done() {
                 try {
@@ -156,18 +224,12 @@ public class SettingsPanel extends JPanel {
                         lblEmail.setText("Email: " + student.getEmail());
                         lblGroup.setText("Group: " + (student.getGroupID() != null ? student.getGroupID() : "-"));
                         lblCourse.setText("Course: " + (student.getCourseName() != null ? student.getCourseName() : "-"));
-                    } else {
-                        clearAccountInfo();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    clearAccountInfo();
-                }
+                    } else clearAccountInfo();
+                } catch (Exception e) { e.printStackTrace(); clearAccountInfo(); }
             }
         }.execute();
     }
 
-    // ===================== CLEAR ACCOUNT INFO =====================
     private void clearAccountInfo() {
         lblStudentID.setText("Student ID: -");
         lblFullName.setText("Full Name: -");
@@ -176,7 +238,7 @@ public class SettingsPanel extends JPanel {
         lblCourse.setText("Course: -");
     }
 
-    // ===================== HANDLE CHANGE PASSWORD =====================
+    // ================= CHANGE PASSWORD =================
     private void handleChangePassword() {
         if (studentId == null) return;
 
@@ -208,18 +270,16 @@ public class SettingsPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Passwords do not match.");
                     return;
                 }
-
                 studentDAO.updatePassword(studentId, newPass);
                 JOptionPane.showMessageDialog(this, "Password updated successfully.");
-                refreshAccountInfo(); // refresh info in case you want to reload any dependent UI
+                refreshAccountInfo();
             }
-
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Failed to update password: " + ex.getMessage(), "DB Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // ===================== HANDLE DELETE ACCOUNT =====================
+    // ================= DELETE ACCOUNT =================
     private void handleDeleteAccount() {
         if (studentId == null) return;
 
@@ -242,47 +302,81 @@ public class SettingsPanel extends JPanel {
         }
     }
 
-    // Helper: clean label style
+    // ================= HELPERS =================
     private JLabel createInfoLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Poppins", Font.BOLD, 16));
-        lbl.setForeground(Color.WHITE);
-        lbl.setOpaque(false);
+        lbl.setFont(new Font("Roboto", Font.PLAIN, 14));
+        lbl.setForeground(Color.DARK_GRAY);
+        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lbl.setHorizontalAlignment(SwingConstants.LEFT);
         return lbl;
     }
 
-    // ===================== SUBJECTS CARD =====================
-    private JPanel createSubjectsCard() {
-        JPanel panel = createGradientCard("Manage Subjects");
+    private JPanel createCard(String title) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(CARD_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(15, 15, 15, 15),
+                BorderFactory.createLineBorder(SHADOW_COLOR, 1, true)
+        ));
+        panel.setOpaque(true);
 
-        subjectListModel = new DefaultListModel<>();
-        subjectList = new JList<>(subjectListModel);
-        subjectList.setFont(new Font("Poppins", Font.PLAIN, 13));
-        subjectList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        // Display subject nicely
-        subjectList.setCellRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value,
-                                                          int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof SubjectDomain s) {
-                    label.setText(s.getSubjectCode() + " - " + s.getSubjectName());
-                }
-                return label;
-            }
-        });
-
-        JScrollPane scroll = new JScrollPane(subjectList);
-        scroll.setPreferredSize(new Dimension(400, 280));
-        scroll.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        panel.add(scroll);
-
+        JLabel lbl = new JLabel(title);
+        lbl.setFont(new Font("Roboto", Font.BOLD, 18));
+        lbl.setForeground(CTA_SECONDARY);
+        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(lbl);
+        panel.add(Box.createVerticalStrut(10));
         return panel;
     }
 
-    // ===================== LOAD STUDENT-SPECIFIC SUBJECTS =====================
+    private JPanel createButtonPanel(String[] texts, Color[] primary, Color[] hover, Runnable[] actions) {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        for (int i = 0; i < texts.length; i++) {
+            final int index = i;
+            JButton btn = createStyledButton(texts[i], primary[i], hover[i]);
+            btn.addActionListener(e -> actions[index].run());
+            panel.add(btn);
+            panel.add(Box.createVerticalStrut(8));
+        }
+        return panel;
+    }
+
+    private JButton createStyledButton(String text, Color primary, Color hover) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Roboto", Font.PLAIN, 14));
+        btn.setBackground(primary);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btn.setOpaque(true);
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Rounded corners
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void installUI(JComponent c) {
+                super.installUI(c);
+                c.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+                c.setBackground(primary);
+                c.setForeground(Color.WHITE);
+            }
+        });
+
+        // Hover effect
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) { btn.setBackground(hover); }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) { btn.setBackground(primary); }
+        });
+
+        return btn;
+    }
+
+    // ================= LOAD SUBJECTS =================
     private void loadStudentSubjects() {
         subjectListModel.clear();
         if (studentGroup == null) return;
@@ -290,23 +384,18 @@ public class SettingsPanel extends JPanel {
         List<SubjectDomain> subjects = new ArrayList<>();
         String courseId = null;
 
-        // Get courseId from studentGroup
         try (Connection conn = connectionProvider.get();
              PreparedStatement ps = conn.prepareStatement("SELECT CourseID FROM StudentGroup WHERE GroupID=?")) {
             ps.setString(1, studentGroup);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) courseId = rs.getString("CourseID");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
         if (courseId == null) return;
 
-        // Get year from group ID
         int yearLevel = 1;
         try { yearLevel = Integer.parseInt(studentGroup.substring(0, 1)); } catch (Exception ignored) {}
 
-        // Fetch subjects
         try (Connection conn = connectionProvider.get();
              PreparedStatement ps = conn.prepareStatement(
                      "SELECT s.SubjectCode, s.SubjectName FROM Subject s " +
@@ -319,61 +408,9 @@ public class SettingsPanel extends JPanel {
                     subjects.add(new SubjectDomain(rs.getString("SubjectCode"), rs.getString("SubjectName"), yearLevel));
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
 
-        // Populate JList
-        if (subjects.isEmpty()) {
-            subjectListModel.addElement(new SubjectDomain("", "<No subjects found>", 0));
-        } else {
-            subjects.forEach(subjectListModel::addElement);
-        }
-    }
-
-    // ===================== HELPERS =====================
-    private JPanel createGradientCard(String title) {
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(41, 128, 185), 0, getHeight(), new Color(72, 196, 230));
-                g2.setPaint(gp);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                g2.dispose();
-            }
-        };
-        panel.setOpaque(false);
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        panel.setPreferredSize(new Dimension(420, 280));
-
-        JLabel lbl = new JLabel(title);
-        lbl.setFont(new Font("Poppins", Font.BOLD, 18));
-        lbl.setForeground(Color.WHITE);
-        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.add(lbl);
-        panel.add(Box.createVerticalStrut(10));
-
-        return panel;
-    }
-
-    private JButton createStyledButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Poppins", Font.BOLD, 13));
-        btn.setBackground(new Color(41, 128, 185));
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(160, 38));
-
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mouseEntered(java.awt.event.MouseEvent e) { btn.setBackground(new Color(52, 152, 219)); }
-            @Override public void mouseExited(java.awt.event.MouseEvent e) { btn.setBackground(new Color(41, 128, 185)); }
-        });
-
-        return btn;
+        if (subjects.isEmpty()) subjectListModel.addElement(new SubjectDomain("", "<No subjects found>", 0));
+        else subjects.forEach(subjectListModel::addElement);
     }
 }
