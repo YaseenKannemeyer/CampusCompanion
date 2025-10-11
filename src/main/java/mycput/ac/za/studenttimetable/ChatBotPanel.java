@@ -4,82 +4,122 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import mycput.ac.za.openaiclient.OpenAIClient;
 
 public class ChatBotPanel extends JPanel {
 
+    private JPanel chatAreaPanel;
+    private JScrollPane scrollPane;
     private JTextField inputField;
     private JButton sendButton;
-    private JButton collapseButton;
-    private JPanel chatPanel;
-    private JScrollPane scrollPane;
-    private boolean collapsed = false;
     private Point mouseDownCompCoords = null;
-    private List<ChatMessage> messages = new ArrayList<>();
 
     // JSON QA List
-    private List<QA> qaList = JsonLoader.loadQA(); // load from JSON file
+    private List<QA> qaList = JsonLoader.loadQA();
 
-    // ================= CHATBOT SETUP =================
+    // ================= COLORS =================
+    private static final Color PRIMARY_BG = new Color(0xD6EEFF);
+    private static final Color CARD_BG = new Color(0xFFFFFF);
+    private static final Color CTA_PRIMARY = new Color(0xE7404A);
+    private static final Color CTA_SECONDARY = new Color(0x1996CC);
+    private static final Color SHADOW_COLOR = new Color(0, 0, 0, 30);
+    private static final Color BACKGROUND = new Color(0xF4F7FA);
+private static final Color USER_BUBBLE = new Color(0x4A90E2);
+private static final Color BOT_BUBBLE = new Color(0xE0E0E0);
+private static final Color USER_TEXT = Color.WHITE;
+private static final Color BOT_TEXT = Color.BLACK;
+
     public ChatBotPanel() {
         setLayout(new BorderLayout());
-        setSize(450, 400);
-        setBorder(BorderFactory.createLineBorder(new Color(40, 120, 200), 2));
-        setBackground(new Color(70, 130, 180, 230));
+        setBackground(PRIMARY_BG);
+        setOpaque(false);
+        setBorder(BorderFactory.createLineBorder(SHADOW_COLOR, 1, true));
+        setSize(450, 500);
         setVisible(false);
 
         initHeader();
         initChatArea();
         initInputPanel();
         initDragging();
+        initOutsideClickListener();
     }
 
     // ================= HEADER =================
     private void initHeader() {
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(40, 120, 200));
-        header.setBorder(new EmptyBorder(4, 8, 4, 8));
+        header.setBackground(CTA_SECONDARY);
+        header.setBorder(new EmptyBorder(10, 15, 10, 15));
 
         JLabel title = new JLabel("💬 ChatBot");
         title.setForeground(Color.WHITE);
-        title.setFont(new Font("Poppins", Font.BOLD, 16));
-
-        collapseButton = new JButton("–");
-        collapseButton.setFocusPainted(false);
-        collapseButton.addActionListener(e -> toggleCollapse());
+        title.setFont(new Font("Roboto", Font.BOLD, 16));
 
         header.add(title, BorderLayout.WEST);
-        header.add(collapseButton, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
     }
 
     // ================= CHAT AREA =================
     private void initChatArea() {
-        chatPanel = new JPanel();
-        chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
-        chatPanel.setBackground(new Color(0, 0, 0, 0));
+        chatAreaPanel = new JPanel();
+        chatAreaPanel.setLayout(new BoxLayout(chatAreaPanel, BoxLayout.Y_AXIS));
+        chatAreaPanel.setBackground(CARD_BG);
+        chatAreaPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        scrollPane = new JScrollPane(chatPanel);
+        scrollPane = new JScrollPane(chatAreaPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        add(scrollPane, BorderLayout.CENTER);
+
+        JPanel chatCard = new JPanel(new BorderLayout());
+        chatCard.setBackground(CARD_BG);
+        chatCard.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(12, 12, 12, 12),
+                BorderFactory.createLineBorder(SHADOW_COLOR, 1, true)
+        ));
+        chatCard.setPreferredSize(new Dimension(450, 350));
+        chatCard.add(scrollPane, BorderLayout.CENTER);
+
+        add(chatCard, BorderLayout.CENTER);
     }
 
-    // ================= INPUT =================
+    // ================= INPUT PANEL =================
     private void initInputPanel() {
-        JPanel inputPanel = new JPanel(new BorderLayout());
-        inputField = new JTextField();
-        sendButton = new JButton("Send");
+        JPanel inputPanel = new JPanel(new BorderLayout(10, 0));
+        inputPanel.setBackground(CARD_BG);
+        inputPanel.setBorder(new EmptyBorder(10, 12, 10, 12));
 
-        inputField.addActionListener(this::processMessage);
-        sendButton.addActionListener(this::processMessage);
+        inputField = new JTextField();
+        inputField.setFont(new Font("Roboto", Font.PLAIN, 16));
+        inputField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(180, 180, 180), 1),
+                BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
+        inputField.setPreferredSize(new Dimension(330, 45));
+
+        sendButton = new JButton("Send");
+        sendButton.setFont(new Font("Roboto", Font.BOLD, 15));
+        sendButton.setBackground(CTA_PRIMARY);
+        sendButton.setForeground(Color.WHITE);
+        sendButton.setFocusPainted(false);
+        sendButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        sendButton.setBorder(BorderFactory.createEmptyBorder());
+        sendButton.setOpaque(true);
+        sendButton.setPreferredSize(new Dimension(100, 45));
+
+        sendButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) { sendButton.setBackground(CTA_SECONDARY); }
+            @Override
+            public void mouseExited(MouseEvent e) { sendButton.setBackground(CTA_PRIMARY); }
+        });
 
         inputPanel.add(inputField, BorderLayout.CENTER);
         inputPanel.add(sendButton, BorderLayout.EAST);
         add(inputPanel, BorderLayout.SOUTH);
+
+        inputField.addActionListener(e -> processMessage());
+        sendButton.addActionListener(e -> processMessage());
     }
 
     // ================= DRAGGING =================
@@ -95,220 +135,183 @@ public class ChatBotPanel extends JPanel {
         addMouseMotionListener(dragger);
     }
 
-    // ================= COLLAPSE =================
-    private void toggleCollapse() {
-        collapsed = !collapsed;
-        chatPanel.setVisible(!collapsed);
-        inputField.setVisible(!collapsed);
-        sendButton.setVisible(!collapsed);
-        collapseButton.setText(collapsed ? "+" : "–");
-        revalidate();
-        repaint();
+    // ================= OUTSIDE CLICK =================
+    private void initOutsideClickListener() {
+        Toolkit.getDefaultToolkit().addAWTEventListener(event -> {
+            if (!(event instanceof MouseEvent me)) return;
+            if (me.getID() != MouseEvent.MOUSE_PRESSED) return;
+            Component clicked = SwingUtilities.getDeepestComponentAt(me.getComponent(), me.getX(), me.getY());
+            if (clicked == null || !SwingUtilities.isDescendingFrom(clicked, ChatBotPanel.this)) {
+                setVisible(false);
+            }
+        }, AWTEvent.MOUSE_EVENT_MASK);
     }
 
     // ================= PROCESS MESSAGE =================
-    private void processMessage(ActionEvent e) {
-        String text = inputField.getText().trim();
-        if (text.isEmpty()) return;
-        inputField.setText("");
+    private void processMessage() {
+    String text = inputField.getText().trim();
+    if (text.isEmpty()) return;
 
-        appendMessage("You", text, Source.USER);
-        appendMessage("ChatBot", "Typing...", Source.SYSTEM);
+    appendMessage("You", text);
+    inputField.setText("");
+    inputField.setEnabled(false);
+    sendButton.setEnabled(false);
 
-        inputField.setEnabled(false);
-        sendButton.setEnabled(false);
+    new Thread(() -> {
+        String response = getJsonAnswer(text);
+        if (response == null || response.isEmpty()) response = PythonChatbotConnector.getBotReply(text);
+        if (response == null || response.isEmpty()) {
+            try { response = OpenAIClient.askGPT(text); }
+            catch (Exception e) { response = "⚠️ Error fetching response."; e.printStackTrace(); }
+        }
 
-        new Thread(() -> {
-            String response = null;
-            Source source = Source.SYSTEM;
-
-            try {
-                // 1️⃣ Check JSON keywords
-                response = getJsonAnswer(text);
-                if (response != null) source = Source.JSON;
-
-                // 2️⃣ Fallback to Python ChatBot
-                if (response == null || response.isEmpty() || response.equals("...")) {
-                    response = PythonChatbotConnector.getBotReply(text);
-                    if (response != null && !response.equals("...")) source = Source.CHATTERBOT;
-                }
-
-                // 3️⃣ Fallback to GPT
-                if (response == null || response.isEmpty() || response.equals("...")) {
-                    response = OpenAIClient.askGPT(text);
-                    source = Source.GPT;
-                }
-
-            } catch (Exception ex) {
-                response = "⚠️ Error: Could not get response.";
-                source = Source.SYSTEM;
-                ex.printStackTrace();
-            }
-
-            String finalResponse = response;
-            Source finalSource = source;
-            SwingUtilities.invokeLater(() -> {
-                removeLastMessage(); // remove "Typing..."
-                appendMessage("ChatBot", finalResponse, finalSource);
-                inputField.setEnabled(true);
-                sendButton.setEnabled(true);
-                inputField.requestFocus();
-            });
-        }).start();
-    }
+        String finalResponse = response;
+        SwingUtilities.invokeLater(() -> {
+            appendMessage("ChatBot", finalResponse);
+            inputField.setEnabled(true);
+            sendButton.setEnabled(true);
+            inputField.requestFocus();
+        });
+    }).start();
+}
 
     // ================= JSON MATCHING =================
-private String getJsonAnswer(String userInput) {
-    if (userInput == null || userInput.isEmpty()) return null;
+    private String getJsonAnswer(String userInput) {
+        if (userInput == null || userInput.isEmpty()) return null;
+        String inputLower = userInput.toLowerCase().trim();
+        QA bestMatch = null;
+        int bestScore = 0;
 
-    String inputLower = userInput.toLowerCase().trim();
-    QA bestMatch = null;
-    int bestScore = 0;
-
-    for (QA qa : qaList) {
-        int qaBestScore = 0;
-
-        // 1️⃣ Handle question as list
-        if (qa.questionList != null && !qa.questionList.isEmpty()) {
-            for (String q : qa.questionList) {
-                String questionLower = q.toLowerCase().trim();
-
-                // Exact match
-                if (inputLower.equals(questionLower)) {
-                    return qa.answer;
+        for (QA qa : qaList) {
+            int qaScore = 0;
+            if (qa.questionList != null) {
+                for (String q : qa.questionList) {
+                    String qLower = q.toLowerCase().trim();
+                    if (inputLower.equals(qLower)) return qa.answer;
+                    String[] words = qLower.split("\\s+");
+                    int matches = 0;
+                    for (String w : words) if (inputLower.contains(w)) matches++;
+                    qaScore = Math.max(qaScore, matches);
                 }
-
-                // Partial match
-                String[] questionWords = questionLower.split("\\s+");
-                int matchedWords = 0;
-                for (String qw : questionWords) {
-                    if (inputLower.contains(qw)) matchedWords++;
-                }
-
-                qaBestScore = Math.max(qaBestScore, matchedWords);
+            } else if (qa.question != null) {
+                String qLower = qa.question.toLowerCase().trim();
+                if (inputLower.equals(qLower)) return qa.answer;
+                String[] words = qLower.split("\\s+");
+                int matches = 0;
+                for (String w : words) if (inputLower.contains(w)) matches++;
+                qaScore = matches;
             }
-        } else {
-            // fallback if question is still a string
-            String questionLower = qa.question.toLowerCase().trim();
 
-            if (inputLower.equals(questionLower)) return qa.answer;
-
-            String[] questionWords = questionLower.split("\\s+");
-            int matchedWords = 0;
-            for (String qw : questionWords) {
-                if (inputLower.contains(qw)) matchedWords++;
+            int keywordScore = 0;
+            if (qa.keywords != null) {
+                for (String kw : qa.keywords) if (inputLower.contains(kw.toLowerCase())) keywordScore++;
             }
-            qaBestScore = matchedWords;
-        }
 
-        // Keyword match
-        int keywordScore = 0;
-        if (qa.keywords != null) {
-            for (String kw : qa.keywords) {
-                if (inputLower.contains(kw.toLowerCase())) keywordScore++;
+            int totalScore = qaScore + keywordScore;
+            if (totalScore > bestScore) {
+                bestScore = totalScore;
+                bestMatch = qa;
             }
         }
 
-        int totalScore = qaBestScore + keywordScore;
-
-        if (totalScore > bestScore) {
-            bestScore = totalScore;
-            bestMatch = qa;
-        }
+        if (bestMatch != null && bestScore > 0) return bestMatch.answer;
+        return null;
     }
 
-    if (bestMatch != null && bestScore > 0) {
-        return bestMatch.answer;
+  // ================= APPEND MESSAGE =================
+private void appendMessage(String sender, String msg) {
+    JPanel messagePanel = new JPanel();
+    messagePanel.setLayout(new BoxLayout(messagePanel, BoxLayout.X_AXIS));
+    messagePanel.setOpaque(false);
+
+    RoundedPanel messageCard = new RoundedPanel(16);
+    messageCard.setLayout(new BorderLayout());
+    messageCard.setMaximumSize(new Dimension(280, Integer.MAX_VALUE)); // smaller max width
+    messageCard.setBorder(new EmptyBorder(8, 12, 8, 12));
+
+    // ===== Tiny label on top =====
+    JLabel senderLabel = new JLabel(sender);
+    senderLabel.setFont(new Font("Roboto", Font.PLAIN, 10));
+    senderLabel.setForeground(new Color(100, 100, 100));
+    senderLabel.setBorder(new EmptyBorder(0, 0, 4, 0));
+
+    // ===== Message text =====
+JTextArea messageText = new JTextArea(msg);
+messageText.setLineWrap(true);
+messageText.setWrapStyleWord(true);
+messageText.setEditable(false);
+messageText.setFont(new Font("Roboto", Font.PLAIN, 15));
+messageText.setOpaque(false);
+
+// ===== Calculate dynamic height =====
+int maxWidth = 280; // max bubble width
+int minHeight = 40; // minimum bubble height
+
+// let the text area compute the height needed for text
+messageText.setSize(maxWidth, Short.MAX_VALUE);
+Dimension preferred = messageText.getPreferredSize();
+messageText.setPreferredSize(new Dimension(maxWidth, Math.max(minHeight, preferred.height)));
+
+
+    // ===== Combine label and text =====
+    JPanel textPanel = new JPanel();
+    textPanel.setLayout(new BorderLayout());
+    textPanel.setOpaque(false);
+    textPanel.add(senderLabel, BorderLayout.NORTH);
+    textPanel.add(messageText, BorderLayout.CENTER);
+
+    // ===== Colors and alignment =====
+    if (sender.equals("You")) {
+        messageCard.setBackground(new Color(0x2A6FDF));
+        messageText.setForeground(Color.WHITE);
+        messagePanel.add(Box.createHorizontalGlue());
+        messagePanel.add(messageCard);
+    } else {
+        messageCard.setBackground(new Color(0xE0E0E0));
+        messageText.setForeground(Color.BLACK);
+        messagePanel.add(messageCard);
+        messagePanel.add(Box.createHorizontalGlue());
     }
 
-    return null;
+    messageCard.add(textPanel, BorderLayout.CENTER);
+
+    chatAreaPanel.add(messagePanel);
+    chatAreaPanel.add(Box.createVerticalStrut(6));
+    chatAreaPanel.revalidate();
+    chatAreaPanel.repaint();
+
+    scrollToBottom();
 }
 
 
 
+// ================= CUSTOM ROUNDED PANEL =================
+class RoundedPanel extends JPanel {
+    private int cornerRadius;
 
-
-    // ================= APPEND MESSAGE =================
-    private void appendMessage(String sender, String msg, Source source) {
-        ChatMessage chatMessage = new ChatMessage(sender, msg, source);
-        messages.add(chatMessage);
-
-        JPanel bubble = new JPanel();
-        bubble.setLayout(new BoxLayout(bubble, BoxLayout.Y_AXIS));
-        bubble.setOpaque(false);
-
-        JTextArea textArea = new JTextArea(msg);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setEditable(false);
-        textArea.setFont(new Font("Inter", Font.PLAIN, 14));
-        textArea.setOpaque(true);
-
-        // Set colors based on source
-        switch (source) {
-            case USER -> {
-                textArea.setBackground(new Color(70, 130, 180, 220));
-                textArea.setForeground(Color.WHITE);
-                bubble.setAlignmentX(Component.RIGHT_ALIGNMENT);
-            }
-            case JSON -> {
-                textArea.setBackground(new Color(180, 255, 180, 220));
-                textArea.setForeground(Color.BLACK);
-                bubble.setAlignmentX(Component.LEFT_ALIGNMENT);
-            }
-            case CHATTERBOT -> {
-                textArea.setBackground(new Color(180, 220, 255, 220));
-                textArea.setForeground(Color.BLACK);
-                bubble.setAlignmentX(Component.LEFT_ALIGNMENT);
-            }
-            case GPT -> {
-                textArea.setBackground(new Color(255, 230, 120, 220));
-                textArea.setForeground(Color.BLACK);
-                bubble.setAlignmentX(Component.LEFT_ALIGNMENT);
-            }
-            case SYSTEM -> {
-                textArea.setBackground(new Color(220, 220, 220, 220));
-                textArea.setForeground(Color.BLACK);
-                bubble.setAlignmentX(Component.LEFT_ALIGNMENT);
-            }
-        }
-
-        textArea.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        bubble.add(textArea);
-        chatPanel.add(bubble);
-        chatPanel.add(Box.createVerticalStrut(5));
-
-        scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum());
-        chatPanel.revalidate();
-        chatPanel.repaint();
+    public RoundedPanel(int radius) {
+        super();
+        this.cornerRadius = radius;
+        setOpaque(false);
     }
 
-    // ================= REMOVE LAST MESSAGE =================
-    private void removeLastMessage() {
-        if (chatPanel.getComponentCount() > 0) {
-            chatPanel.remove(chatPanel.getComponentCount() - 1);
-            chatPanel.revalidate();
-            chatPanel.repaint();
-        }
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2.setColor(getBackground());
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+
+        g2.dispose();
+        super.paintComponent(g);
     }
+}
 
-    // ================= CHAT MESSAGE MODEL =================
-    public static class ChatMessage {
-        String sender;
-        String message;
-        Source source;
 
-        public ChatMessage(String sender, String message, Source source) {
-            this.sender = sender;
-            this.message = message;
-            this.source = source;
-        }
+    
+
+    private void scrollToBottom() {
+        SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum()));
     }
-
-    // ================= MESSAGE SOURCE =================
-    public enum Source {
-        USER, JSON, CHATTERBOT, GPT, SYSTEM
-    }
-
-   
 }
