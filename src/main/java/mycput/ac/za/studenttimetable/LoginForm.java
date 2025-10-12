@@ -58,7 +58,7 @@ public class LoginForm extends JPanel {
     } catch (Exception ex) { /* ignore */ }
 
     if (originalIcon != null) {
-        Image scaledImage = originalIcon.getImage().getScaledInstance(180, 80, Image.SCALE_SMOOTH);
+        Image scaledImage = originalIcon.getImage().getScaledInstance(200, 140, Image.SCALE_SMOOTH);
         JLabel logoLabel = new JLabel(new ImageIcon(scaledImage));
         logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         topPanel.add(logoLabel);
@@ -80,16 +80,16 @@ welcome.setVerticalAlignment(SwingConstants.CENTER);   // Text vertical centerin
 topPanel.add(welcome);
 
 
-    // --- Hint text ---
-    topPanel.add(Box.createVerticalStrut(12));
-    JLabel hint = new JLabel("<html><div style='text-align:center;'>Access your timetables, assignments and announcements quickly and securely.</div></html>");
-    hint.setFont(new Font("Roboto", Font.PLAIN, 13));
-    hint.setForeground(TEXT);
-    hint.setAlignmentX(Component.CENTER_ALIGNMENT);
-    topPanel.add(hint);
-
-    // Add topPanel to main panel (GridBagLayout centers it)
-    add(topPanel, gbc);
+//    // --- Hint text ---
+//    topPanel.add(Box.createVerticalStrut(12));
+//    JLabel hint = new JLabel("<html><div style='text-align:center;'>Access your timetables, assignments and announcements quickly and securely.</div></html>");
+//    hint.setFont(new Font("Roboto", Font.PLAIN, 13));
+//    hint.setForeground(TEXT);
+//    hint.setAlignmentX(Component.CENTER_ALIGNMENT);
+//    topPanel.add(hint);
+//
+//    // Add topPanel to main panel (GridBagLayout centers it)
+   add(topPanel, gbc);
 
     // ================= FORM CARD =================
     gbc.gridy = 1;

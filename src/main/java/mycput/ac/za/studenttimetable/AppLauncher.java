@@ -24,47 +24,27 @@ public class AppLauncher {
 
     private static void showSplashScreen() {
         // Load GIF from resources
-        ImageIcon originalIcon = new ImageIcon(AppLauncher.class.getResource("/Vid/AUTO.gif"));
+        String gifPath = AppLauncher.class.getResource("/Vid/AUTO.gif").toString();
 
-        // Get original image dimensions
-        int originalWidth = originalIcon.getIconWidth();
-        int originalHeight = originalIcon.getIconHeight();
+        // Use HTML scaling to preserve animation and quality
+        String html = String.format(
+            "<html><center><img src='%s' width='%d' height='%d'></center></html>",
+            gifPath, 800, 450
+        );
 
-        // Desired maximum size
-        int maxWidth = 1000;
-        int maxHeight = 700;
-
-        // Calculate scaling factor to maintain aspect ratio
-        double widthRatio = (double) maxWidth / originalWidth;
-        double heightRatio = (double) maxHeight / originalHeight;
-        double scale = Math.min(widthRatio, heightRatio); // fit inside 1000x700
-
-        int newWidth = (int) (originalWidth * scale);
-        int newHeight = (int) (originalHeight * scale);
-
-        // Scale the image
-        Image scaledImage = originalIcon.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);
-        ImageIcon scaledIcon = new ImageIcon(scaledImage);
-
-        JLabel splashLabel = new JLabel(scaledIcon);
-        splashLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        splashLabel.setVerticalAlignment(SwingConstants.CENTER);
+        JLabel splashLabel = new JLabel(html, SwingConstants.CENTER);
+        splashLabel.setOpaque(true);
+        splashLabel.setBackground(Color.BLACK);
 
         // Create splash JFrame
         JFrame splashFrame = new JFrame();
         splashFrame.setUndecorated(true);
-        splashFrame.getContentPane().add(splashLabel);
-        splashFrame.pack();
-
-        // Center on screen
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int x = (screenSize.width - splashFrame.getWidth()) / 2;
-        int y = (screenSize.height - splashFrame.getHeight()) / 2;
-        splashFrame.setLocation(x, y);
-
+        splashFrame.add(splashLabel);
+        splashFrame.setSize(800, 450);
+        splashFrame.setLocationRelativeTo(null); // Center on screen
         splashFrame.setVisible(true);
 
-        // Close splash after 5 seconds
+        // Close splash after 5.5 seconds
         Timer timer = new Timer(5500, e -> {
             splashFrame.dispose();
             launchMainApp();

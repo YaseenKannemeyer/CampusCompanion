@@ -61,7 +61,10 @@ public class StudentSignupForm extends JPanel {
     };
     leftPanel.setPreferredSize(new Dimension(250, 0));
     leftPanel.setLayout(new BorderLayout());
-    leftPanel.setBorder(new EmptyBorder(36, 28, 36, 28));
+leftPanel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createMatteBorder(0, 0, 0, 10, new Color(0, 0, 0, 5)), // right shadow
+        new EmptyBorder(36, 28, 36, 28) // keep your padding
+));
 
     // Centered content (logo + welcome + hint)
     JPanel centerContent = new JPanel();
@@ -70,20 +73,21 @@ public class StudentSignupForm extends JPanel {
     centerContent.setAlignmentX(Component.CENTER_ALIGNMENT);
 
     // Logo
-    // Load original icon
+   // Logo
 ImageIcon originalIcon = null;
 try {
     originalIcon = new ImageIcon(getClass().getResource("/icons/LogoB.png"));
 } catch (Exception ex) { /* ignore */ }
 
 if (originalIcon != null) {
-    // Scale using the high-quality method
-    Image scaledImage = getScaledImage(originalIcon.getImage(), 180, 80);
+    // Scale the logo cleanly to 800 x 450
+    Image scaledImage = getScaledImage(originalIcon.getImage(), 200, 140);
     JLabel logoLabel = new JLabel(new ImageIcon(scaledImage));
     logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
     centerContent.add(Box.createVerticalStrut(24));
     centerContent.add(logoLabel);
 }
+
 
 
     // Welcome text

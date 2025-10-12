@@ -104,7 +104,7 @@ try {
     ImageIcon icon = new ImageIcon(getClass().getResource("/icons/LogoW.png"));
     
     // Increase logo size
-    int logoHeight = 150; // bigger than before
+    int logoHeight = 140; // bigger than before
     int logoWidth = (icon.getIconWidth() * logoHeight) / icon.getIconHeight();
     Image scaled = icon.getImage().getScaledInstance(logoWidth, logoHeight, Image.SCALE_SMOOTH);
     logoLabel.setIcon(new ImageIcon(scaled));
