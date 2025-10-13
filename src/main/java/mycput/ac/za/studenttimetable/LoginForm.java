@@ -337,9 +337,50 @@ topPanel.add(welcome);
         return panel;
     }
 
-    private JPanel createLabeledPasswordField(String labelText, JComponent field) {
-        return createLabeledField(labelText, field);
-    }
+  private JPanel createLabeledPasswordField(String labelText, JPasswordField field) {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setOpaque(false);
+
+    // Label
+    JLabel label = new JLabel(labelText);
+    label.setFont(new Font("Roboto", Font.PLAIN, 13));
+    label.setForeground(TEXT);
+    label.setAlignmentX(Component.LEFT_ALIGNMENT); // align left
+    panel.add(label);
+    panel.add(Box.createVerticalStrut(4));
+
+    // Password field
+    field.setFont(new Font("Roboto", Font.PLAIN, 15));
+    field.setPreferredSize(new Dimension(680, 46));
+    field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46)); // allow stretching
+    field.setAlignmentX(Component.LEFT_ALIGNMENT); // align left
+    panel.add(field);
+    panel.add(Box.createVerticalStrut(4));
+
+    // Show password checkbox (LEFT aligned)
+    JCheckBox showPassword = new JCheckBox("Show Password");
+    showPassword.setOpaque(false);
+    showPassword.setFont(new Font("Roboto", Font.PLAIN, 12));
+    showPassword.addActionListener(e -> {
+        if (showPassword.isSelected()) {
+            field.setEchoChar((char) 0); // show
+        } else {
+            field.setEchoChar('•'); // mask
+        }
+    });
+
+    // Wrap checkbox in left-aligned panel
+    JPanel checkboxWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    checkboxWrapper.setOpaque(false);
+    checkboxWrapper.add(showPassword);
+    checkboxWrapper.setAlignmentX(Component.LEFT_ALIGNMENT); // align wrapper to left
+    panel.add(checkboxWrapper);
+
+    return panel;
+}
+
+
 
     private Border createMaterialFieldBorder() {
         return BorderFactory.createCompoundBorder(

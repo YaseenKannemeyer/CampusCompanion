@@ -44,8 +44,8 @@ public class AppLauncher {
         splashFrame.setLocationRelativeTo(null); // Center on screen
         splashFrame.setVisible(true);
 
-        // Close splash after 5.5 seconds
-        Timer timer = new Timer(5500, e -> {
+        // Close splash after 3 seconds
+        Timer timer = new Timer(3000, e -> {
             splashFrame.dispose();
             launchMainApp();
         });

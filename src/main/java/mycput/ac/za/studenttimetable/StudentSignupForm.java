@@ -254,7 +254,7 @@ if (originalIcon != null) {
     txtConfirmPassword.setPreferredSize(new Dimension(320, 46));
 
     JPanel passPanel = createLabeledPasswordField("Password", txtPassword);
-    JPanel confirmPanel = createLabeledPasswordField("Confirm Password", txtConfirmPassword);
+    JPanel confirmPanel = createLabeledConfirmPasswordField("Confirm Password", txtConfirmPassword);
     fgbc.gridx = 0; fgbc.gridy = 4;
     fields.add(passPanel, fgbc);
     fgbc.gridx = 1;
@@ -376,7 +376,7 @@ private Image getScaledImage(Image src, int w, int h) {
             tf.getDocument().addDocumentListener(new SimpleDocumentListener() {
                 @Override public void update() {
                     String text = tf.getText().trim();
-                    boolean valid = text.matches("[a-zA-Z]+");
+                    boolean valid = text.matches("[a-zA-Z\\-\\' ]+");
                     star.setVisible(!valid);
                 }
             });
@@ -412,7 +412,7 @@ private Image getScaledImage(Image src, int w, int h) {
         return panel;
     }
 
-    private JPanel createLabeledPasswordField(String labelText, JPasswordField field) {
+    private JPanel createLabeledConfirmPasswordField(String labelText, JPasswordField field) {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
         panel.setLayout(new BorderLayout(0, 6));
@@ -442,7 +442,9 @@ private Image getScaledImage(Image src, int w, int h) {
                 boolean hasLower = password.matches(".*[a-z].*");
                 boolean hasDigit = password.matches(".*\\d.*");
                 boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
-                star.setVisible(!(hasUpper && hasLower && hasDigit && hasSpecial));
+                boolean hasMinLength = password.length() >= 8; // <-- minimum 8 characters
+
+    star.setVisible(!(hasUpper && hasLower && hasDigit && hasSpecial && hasMinLength));
                 // if confirm exists, sync (handled elsewhere)
             }
         });
@@ -461,6 +463,84 @@ private Image getScaledImage(Image src, int w, int h) {
 
         return panel;
     }
+    
+    
+    private JPanel createLabeledPasswordField(String labelText, JPasswordField field) {
+    JPanel panel = new JPanel();
+    panel.setOpaque(false);
+    panel.setLayout(new BorderLayout(0, 6));
+
+    // ===== Label + Red Star =====
+    JPanel labelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+    labelRow.setOpaque(false);
+    JLabel label = new JLabel(labelText);
+    label.setFont(new Font("Roboto", Font.PLAIN, 14));
+    label.setForeground(TEXT);
+    JLabel star = new JLabel("*");
+    star.setFont(new Font("Roboto", Font.BOLD, 14));
+    star.setForeground(Color.RED);
+    labelRow.add(label);
+    labelRow.add(star);
+    panel.add(labelRow, BorderLayout.NORTH);
+
+    // ===== Password Field + Show Password Checkbox =====
+    JPanel fieldRow = new JPanel(new BorderLayout());
+    fieldRow.setOpaque(false);
+
+    field.setFont(new Font("Roboto", Font.PLAIN, 15));
+    fieldRow.add(field, BorderLayout.CENTER);
+
+    JCheckBox showPassword = new JCheckBox("Show");
+    showPassword.setOpaque(false);
+    showPassword.setFont(new Font("Roboto", Font.PLAIN, 12));
+
+    // Save the default echo char
+    char defaultEcho = field.getEchoChar();
+
+    showPassword.addActionListener(e -> {
+        if (showPassword.isSelected()) {
+            field.setEchoChar((char) 0); // show password
+        } else {
+            field.setEchoChar(defaultEcho); // mask password
+        }
+    });
+
+    fieldRow.add(showPassword, BorderLayout.EAST);
+
+    panel.add(fieldRow, BorderLayout.CENTER);
+
+    // ===== Password validation rules =====
+    field.getDocument().addDocumentListener(new SimpleDocumentListener() {
+        @Override
+        public void update() {
+            String password = new String(field.getPassword());
+            boolean hasUpper = password.matches(".*[A-Z].*");
+            boolean hasLower = password.matches(".*[a-z].*");
+            boolean hasDigit = password.matches(".*\\d.*");
+            boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+            boolean hasMinLength = password.length() >= 8; // <-- minimum 8 characters
+
+    star.setVisible(!(hasUpper && hasLower && hasDigit && hasSpecial && hasMinLength));
+        }
+    });
+
+    // Confirm password syncing
+    if (labelText.equals("Confirm Password")) {
+        field.getDocument().addDocumentListener(new SimpleDocumentListener() {
+            @Override
+            public void update() {
+                String pwd = txtPassword == null ? "" : new String(txtPassword.getPassword());
+                String confirm = new String(field.getPassword());
+                star.setVisible(!pwd.equals(confirm));
+            }
+        });
+    }
+
+    return panel;
+}
+
+    
+    
 
     private Border createMaterialFieldBorder() {
         return BorderFactory.createCompoundBorder(
@@ -527,14 +607,14 @@ private Image getScaledImage(Image src, int w, int h) {
     }
 
     // Names: letters only
-    if (!firstName.matches("[a-zA-Z]+")) {
-        showToast("First name can only contain letters!", true);
-        return;
-    }
-    if (!lastName.matches("[a-zA-Z]+")) {
-        showToast("Last name can only contain letters!", true);
-        return;
-    }
+    if (!firstName.matches("[a-zA-Z\\-\\' ]+")) {
+    showToast("First name can only contain letters, spaces, hyphens, or apostrophes!", true);
+    return;
+}
+if (!lastName.matches("[a-zA-Z\\-\\' ]+")) {
+    showToast("Last name can only contain letters, spaces, hyphens, or apostrophes!", true);
+    return;
+}
 
     // Email validation
     if (!email.matches("^[a-zA-Z0-9._%+-]+@(mycput\\.ac\\.za|cput\\.ac\\.za|gmail\\.com|outlook\\.com|hotmail\\.com|yahoo\\.com)$")) {
@@ -549,27 +629,28 @@ private Image getScaledImage(Image src, int w, int h) {
     }
 
     // Password validation
-    boolean hasUpper = password.matches(".*[A-Z].*");
-    boolean hasLower = password.matches(".*[a-z].*");
-    boolean hasDigit = password.matches(".*\\d.*");
-    boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+boolean hasUpper = password.matches(".*[A-Z].*");
+boolean hasLower = password.matches(".*[a-z].*");
+boolean hasDigit = password.matches(".*\\d.*");
+boolean hasSpecial = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+boolean hasMinLength = password.length() >= 8; // minimum 8 characters
 
-    StringBuilder pwdError = new StringBuilder();
-    if (!hasUpper) pwdError.append("Password must contain at least 1 capital letter.\n");
-    if (!hasLower) pwdError.append("Password must contain at least 1 lowercase letter.\n");
-    if (!hasDigit) pwdError.append("Password must contain at least 1 number.\n");
-    if (!hasSpecial) pwdError.append("Password must contain at least 1 special character.\n");
+StringBuilder pwdError = new StringBuilder();
+if (!hasMinLength) pwdError.append("Password must be at least 8 characters long.\n");
+if (!hasUpper) pwdError.append("Password must contain at least 1 capital letter.\n");
+if (!hasLower) pwdError.append("Password must contain at least 1 lowercase letter.\n");
+if (!hasDigit) pwdError.append("Password must contain at least 1 number.\n");
+if (!hasSpecial) pwdError.append("Password must contain at least 1 special character.\n");
 
-    if (pwdError.length() > 0) {
-        showToast(pwdError.toString(), true);
-        return;
-    }
+if (pwdError.length() > 0) {
+    showToast(pwdError.toString(), true);
+    return;
+}
 
-    if (!password.equals(confirmPassword)) {
-        showToast("Passwords do not match!", true);
-        return;
-    }
-
+if (!password.equals(confirmPassword)) {
+    showToast("Passwords do not match!", true);
+    return;
+}
     // --- Create StudentDomain object ---
     StudentDomain student = new StudentDomain(
             studentId,
@@ -587,7 +668,7 @@ private Image getScaledImage(Image src, int w, int h) {
         boolean success = dao.saveStudent(student, password);
 
         if (success) {
-            showToast("Signup successful! Welcome, " + firstName, false);
+            showToastWithLoginRedirect("Signup successful! Welcome, " + firstName);
             clearForm();
             if (parent != null) parent.slideToLogin();
         } else {
@@ -598,6 +679,46 @@ private Image getScaledImage(Image src, int w, int h) {
         showToast("Database error: " + ex.getMessage(), true);
     }
 }
+    
+    private void showToastWithLoginRedirect(String message) {
+    JDialog dialog = new JDialog((Frame) null, "Success", true);
+    dialog.setSize(400, 180);
+    dialog.setLocationRelativeTo(this);
+    dialog.setResizable(false);
+
+    JPanel panel = new JPanel(new BorderLayout(15, 15));
+    panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+    panel.setBackground(CARD_BG);
+
+    JLabel title = new JLabel("✅ Success");
+    title.setFont(new Font("Roboto", Font.BOLD, 18));
+    title.setForeground(new Color(0x2ECC71));
+    panel.add(title, BorderLayout.NORTH);
+
+    JTextArea messageArea = new JTextArea(message);
+    messageArea.setFont(new Font("Roboto", Font.PLAIN, 14));
+    messageArea.setWrapStyleWord(true);
+    messageArea.setLineWrap(true);
+    messageArea.setEditable(false);
+    messageArea.setOpaque(false);
+    panel.add(messageArea, BorderLayout.CENTER);
+
+    JButton closeBtn = new JButton("Continue");
+    styleButton(closeBtn, new Color(0x2ECC71), CTA_SECONDARY, new Dimension(140, 38));
+    closeBtn.addActionListener(e -> {
+        dialog.dispose();
+        if (parent != null) parent.slideToLogin(); // ✅ redirect after dialog closed
+    });
+
+    JPanel btnWrapper = new JPanel();
+    btnWrapper.setOpaque(false);
+    btnWrapper.add(closeBtn);
+    panel.add(btnWrapper, BorderLayout.SOUTH);
+
+    dialog.setContentPane(panel);
+    dialog.setVisible(true);
+}
+
 
 private void clearForm() {
     txtStudentId.setText("");
