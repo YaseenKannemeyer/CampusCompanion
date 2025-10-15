@@ -1,55 +1,26 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package mycput.ac.za.studenttimetable.domain;
-import java.sql.Date;
+
 import java.sql.Time;
 
-
-/**
- *
- * @author mogamatyaseenkannemeyer
- */
 public class TimetableDomain {
-    
 
-    private int timeTableID;
     private String subjectCode;
-    private String groupID;
+    private String subjectName;       // NEW
     private String lecturerID;
+    private String lecturerName;      // NEW
     private String roomID;
+    private String roomType;          // NEW
     private String classType;
-    private Date classDate;
+    private String groupID;
+    private String dayOfWeek;
     private Time startTime;
     private Time endTime;
 
-    // Default constructor
-    public TimetableDomain() {}
-
-    // Full constructor
-    public TimetableDomain(int timeTableID, String subjectCode, String groupID, String lecturerID,
-                           String roomID, String classType, Date classDate, Time startTime, Time endTime) {
-        this.timeTableID = timeTableID;
-        this.subjectCode = subjectCode;
-        this.groupID = groupID;
-        this.lecturerID = lecturerID;
-        this.roomID = roomID;
-        this.classType = classType;
-        this.classDate = classDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
+    // Empty constructor
+    public TimetableDomain() {
     }
 
-    // Getters and setters
-    public int getTimeTableID() {
-        return timeTableID;
-    }
-
-    public void setTimeTableID(int timeTableID) {
-        this.timeTableID = timeTableID;
-    }
-
+    // Getters & setters
     public String getSubjectCode() {
         return subjectCode;
     }
@@ -58,12 +29,12 @@ public class TimetableDomain {
         this.subjectCode = subjectCode;
     }
 
-    public String getGroupID() {
-        return groupID;
+    public String getSubjectName() {
+        return subjectName;
     }
 
-    public void setGroupID(String groupID) {
-        this.groupID = groupID;
+    public void setSubjectName(String subjectName) {
+        this.subjectName = subjectName;
     }
 
     public String getLecturerID() {
@@ -74,12 +45,28 @@ public class TimetableDomain {
         this.lecturerID = lecturerID;
     }
 
+    public String getLecturerName() {
+        return lecturerName;
+    }
+
+    public void setLecturerName(String lecturerName) {
+        this.lecturerName = lecturerName;
+    }
+
     public String getRoomID() {
         return roomID;
     }
 
     public void setRoomID(String roomID) {
         this.roomID = roomID;
+    }
+
+    public String getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
     }
 
     public String getClassType() {
@@ -90,12 +77,20 @@ public class TimetableDomain {
         this.classType = classType;
     }
 
-    public Date getClassDate() {
-        return classDate;
+    public String getGroupID() {
+        return groupID;
     }
 
-    public void setClassDate(Date classDate) {
-        this.classDate = classDate;
+    public void setGroupID(String groupID) {
+        this.groupID = groupID;
+    }
+
+    public String getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public void setDayOfWeek(String dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
     }
 
     public Time getStartTime() {
@@ -113,21 +108,4 @@ public class TimetableDomain {
     public void setEndTime(Time endTime) {
         this.endTime = endTime;
     }
-
-    @Override
-    public String toString() {
-        return "TimeTableDomain{" +
-                "timeTableID=" + timeTableID +
-                ", subjectCode='" + subjectCode + '\'' +
-                ", groupID='" + groupID + '\'' +
-                ", lecturerID='" + lecturerID + '\'' +
-                ", roomID='" + roomID + '\'' +
-                ", classType='" + classType + '\'' +
-                ", classDate=" + classDate +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
-                '}';
-    }
 }
-
-    

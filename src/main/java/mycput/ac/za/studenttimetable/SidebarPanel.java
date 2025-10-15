@@ -102,22 +102,34 @@ add(bottomPanel, BorderLayout.SOUTH);
 
     // ================= INIT CONTENT PANELS =================
     private void initContentPanels(JTable table) {
-        contentPanel.setLayout(new CardLayout());
+    contentPanel.setLayout(new CardLayout());
 
-        dashboardPanel = new DashboardPanel(connectionProvider, null, null);
-        timetablePanel = new JPanel(new BorderLayout());
-        timetablePanel.add(new JScrollPane(table), BorderLayout.CENTER);
+    dashboardPanel = new DashboardPanel(connectionProvider, null, null);
 
-        subjectsPanel = new Subjects(connectionProvider, "", "");
-        settingsPanel = new SettingsPanel(connectionProvider);
-        notificationsPanel = new NotificationsPanel(currentStudentId);
+    // === Timetable Panel (with Header) ===
+    timetablePanel = new JPanel(new BorderLayout());
+    timetablePanel.setBackground(new Color(0xD6EEFF)); // match style
+    
+    // Header panel — styled like DashboardPanel
+    HeaderBannerPanel header = new HeaderBannerPanel(connectionProvider, currentStudentId);
+    timetablePanel.add(header, BorderLayout.NORTH);
 
-        contentPanel.add(dashboardPanel, "Dashboard");
-        contentPanel.add(timetablePanel, "Timetable");
-        contentPanel.add(subjectsPanel, "Subjects");
-        contentPanel.add(settingsPanel, "Settings");
-        contentPanel.add(notificationsPanel, "Notifications");
-    }
+    // Scrollable timetable table
+    JScrollPane scroll = new JScrollPane(table);
+    scroll.setBorder(BorderFactory.createEmptyBorder(10, 15, 15, 15));
+    timetablePanel.add(scroll, BorderLayout.CENTER);
+
+    // === Other Panels ===
+    subjectsPanel = new Subjects(connectionProvider, "", "");
+    settingsPanel = new SettingsPanel(connectionProvider);
+    notificationsPanel = new NotificationsPanel(currentStudentId);
+
+    contentPanel.add(dashboardPanel, "Dashboard");
+    contentPanel.add(timetablePanel, "Timetable");
+    contentPanel.add(subjectsPanel, "Subjects");
+    contentPanel.add(settingsPanel, "Settings");
+    contentPanel.add(notificationsPanel, "Notifications");
+}
 
     // ================= SET STUDENT =================
     public void setCurrentStudent(String studentId, String studentGroup) {
@@ -139,6 +151,15 @@ add(bottomPanel, BorderLayout.SOUTH);
 
             if (notificationsPanel != null)
                 notificationsPanel.setStudent(student);
+            if (timetablePanel != null) {
+    for (Component comp : timetablePanel.getComponents()) {
+        if (comp instanceof HeaderBannerPanel headerPanel) {
+            headerPanel.setStudent(student);
+        }
+    }
+}
+            
+
 
         } catch (Exception e) {
             e.printStackTrace();
