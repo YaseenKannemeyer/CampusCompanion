@@ -1,35 +1,26 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package mycput.ac.za.studenttimetable.domain;
 
-/**
- *
- * @author mogamatyaseenkannemeyer
- */
 public class AdminDomain {
 
     private String adminID;
-    private String userID;     // FK reference to UserAccount
+    private String userID;
     private String firstName;
     private String lastName;
+    private String email;
     private String phoneNumber;
 
-    // Default constructor
     public AdminDomain() {
     }
 
-    // Full constructor
-    public AdminDomain(String adminID, String userID, String firstName, String lastName, String phoneNumber) {
+    public AdminDomain(String adminID, String userID, String firstName, String lastName, String email, String phoneNumber) {
         this.adminID = adminID;
         this.userID = userID;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.email = email;
         this.phoneNumber = phoneNumber;
     }
 
-    // Getters and Setters
     public String getAdminID() {
         return adminID;
     }
@@ -62,6 +53,14 @@ public class AdminDomain {
         this.lastName = lastName;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -72,13 +71,8 @@ public class AdminDomain {
 
     @Override
     public String toString() {
-        return "AdminDomain{"
-                + "adminID='" + adminID + '\''
-                + ", userID='" + userID + '\''
-                + ", firstName='" + firstName + '\''
-                + ", lastName='" + lastName + '\''
-                + ", phoneNumber='" + phoneNumber + '\''
-                + '}';
+        return "AdminDomain{" + "adminID=" + adminID + ", userID=" + userID + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + ", phoneNumber=" + phoneNumber + '}';
     }
-
+    
+    
 }

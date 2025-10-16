@@ -11,6 +11,8 @@ import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.awt.Desktop;
 import java.net.URI;
+import mycput.ac.za.studenttimetable.dao.AdminDAO;
+import mycput.ac.za.studenttimetable.domain.AdminDomain;
 
 public class LoginForm extends JPanel {
 
@@ -198,39 +200,52 @@ topPanel.add(welcome);
 
 
     // ---------- Helpers ----------
-    private void handleLogin() {
-        String email = txtEmail.getText().trim();
-        String password = new String(txtPassword.getPassword());
+   private void handleLogin() {
+    String email = txtEmail.getText().trim();
+    String password = new String(txtPassword.getPassword());
 
-        if (email.isEmpty() || password.isEmpty()) {
-    showErrorDialog("Incomplete Fields", "Please enter both email and password.");
+    if (email.isEmpty() || password.isEmpty()) {
+        showErrorDialog("Incomplete Fields", "Please enter both email and password.");
+        return;
+    }
+
+    try {
+        // Try Admin first
+        AdminDAO adminDAO = new AdminDAO();
+        AdminDomain admin = adminDAO.loginAdmin(email, password);
+        if (admin != null) {
+            // ✅ Open Admin Dashboard
+            SwingUtilities.invokeLater(() -> {
+                new AdminDashboard().setVisible(true);
+                SwingUtilities.getWindowAncestor(this).dispose();
+            });
             return;
         }
 
-        try {
-            StudentDAO dao = new StudentDAO();
-            StudentDomain student = dao.loginStudent(email, password);
-
-            if (student == null) {
-    showErrorDialog("Login Failed", "Invalid email or password.");
-                return;
-            }
-
+        // Try Student
+        StudentDAO studentDAO = new StudentDAO();
+        StudentDomain student = studentDAO.loginStudent(email, password);
+        if (student != null) {
             Session.setStudent(student.getStudentID(), student.getGroupID());
             showLoginSuccessDialog(student.getFirstName());
-
 
             if (parent != null) {
                 parent.showMainDashboard();
                 parent.getSidebar().setCurrentStudent(student.getStudentID(), student.getGroupID());
                 parent.getSidebar().renderContent("Dashboard");
             }
-
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
+            return;
         }
+
+        // Neither student nor admin found
+        showErrorDialog("Login Failed", "Invalid email or password.");
+
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        ex.printStackTrace();
     }
+}
+
     
     private void showLoginSuccessDialog(String studentName) {
     JDialog dialog = new JDialog((Frame) null, "Login Successful", true);
