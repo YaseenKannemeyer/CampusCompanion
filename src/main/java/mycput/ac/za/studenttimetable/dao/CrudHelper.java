@@ -96,5 +96,74 @@ public class CrudHelper {
     }
     return "U000";
 }
+    
+     public static void syncUserEmail(String userId, String newEmail) throws SQLException {
+    String[] tables = {"Admin", "Student", "Lecturer"};
+    for (String table : tables) {
+        String sql = "UPDATE " + table + " SET Email = ? WHERE UserID = ?";
+        try (Connection conn = DBConnection.derbyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newEmail);
+            ps.setString(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException ignored) {
+            // Some tables may not have an Email column (ignore safely)
+        }
+    }
+}
+
+public static void syncUserRole(String userId, String newRole) throws SQLException {
+    String sql = "UPDATE UserAccount SET Role = ? WHERE UserID = ?";
+    try (Connection conn = DBConnection.derbyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setString(1, newRole);
+        ps.setString(2, userId);
+        ps.executeUpdate();
+    }
+}
+
+public static String getNextUserId() throws SQLException {
+    String sql = "SELECT MAX(UserID) FROM UserAccount";
+    try (Connection conn = DBConnection.derbyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        var rs = ps.executeQuery();
+        if (rs.next() && rs.getString(1) != null) {
+            String current = rs.getString(1);
+            int num = Integer.parseInt(current.substring(1));
+            return String.format("U%03d", num + 1);
+        } else {
+            return "U001";
+        }
+    }
+}
+
+public static String getNextAdminId() throws SQLException {
+    String sql = "SELECT MAX(AdminID) FROM Admin";
+    try (Connection conn = DBConnection.derbyConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        var rs = ps.executeQuery();
+        if (rs.next() && rs.getString(1) != null) {
+            String current = rs.getString(1);
+            int num = Integer.parseInt(current.substring(1));
+            return String.format("A%03d", num + 1);
+        } else {
+            return "A001";
+        }
+    }
+}
+
+public static List<String> getAllGroupIds() throws SQLException {
+        List<String> groupIds = new ArrayList<>();
+        String sql = "SELECT GroupID FROM StudentGroup ORDER BY GroupID";
+
+        try (Connection conn =  DBConnection.derbyConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                groupIds.add(rs.getString("GroupID"));
+            }
+        }
+
+        return groupIds;
+    }
+
+
 
 }

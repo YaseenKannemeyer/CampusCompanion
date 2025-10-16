@@ -320,6 +320,20 @@ public void deleteStudent(String studentId) throws SQLException {
     }
 }
 
+public List<String> getAllStudentIDs() throws SQLException {
+    List<String> ids = new ArrayList<>();
+    String sql = "SELECT StudentID FROM Student";
+    try (Connection conn = DBConnection.derbyConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+            ids.add(rs.getString("StudentID"));
+        }
+    }
+    return ids;
+}
+
+
 
 
 }
