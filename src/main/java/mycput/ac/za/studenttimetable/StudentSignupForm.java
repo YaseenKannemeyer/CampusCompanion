@@ -10,6 +10,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -112,14 +114,42 @@ if (originalIcon != null) {
     glueWrapper.add(centerContent, BorderLayout.CENTER);
 
     // Bottom links (Help + Privacy)
-    JPanel bottomLinks = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
-    bottomLinks.setOpaque(false);
-    JLabel help = createLinkLabel("Help", () -> openExternal("https://mycput.cput.ac.za/"));
-    JLabel privacy = createLinkLabel("Privacy", () -> openExternal("https://cput.ac.za/privacy/"));
-    help.setFont(new Font("Roboto", Font.PLAIN, 12));
-    privacy.setFont(new Font("Roboto", Font.PLAIN, 12));
-    bottomLinks.add(help);
-    bottomLinks.add(privacy);
+    // Bottom links (Help + Contact)
+JPanel bottomLinks = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
+bottomLinks.setOpaque(false);
+
+String basePath = "/Users/mogamatyaseenkannemeyer/Documents/CPUT 3rd YEAR/PRT2/StudentTimeTable/src/main/resources/";
+
+JLabel help = createLinkLabel("Help", () -> {
+    try {
+        File helpFile = new File(basePath + "Help.html");
+        if (Desktop.isDesktopSupported()) {
+            Desktop.getDesktop().browse(helpFile.toURI());
+        }
+    } catch (IOException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Unable to open Help file.");
+    }
+});
+
+JLabel contact = createLinkLabel("Contact us", () -> {
+    try {
+        File contactFile = new File(basePath + "Contact.html");
+        if (Desktop.isDesktopSupported()) {
+            Desktop.getDesktop().browse(contactFile.toURI());
+        }
+    } catch (IOException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Unable to open Contact file.");
+    }
+});
+
+help.setFont(new Font("Roboto", Font.PLAIN, 12));
+contact.setFont(new Font("Roboto", Font.PLAIN, 12));
+
+bottomLinks.add(help);
+bottomLinks.add(contact);
+
 
     leftPanel.add(glueWrapper, BorderLayout.CENTER);
     leftPanel.add(bottomLinks, BorderLayout.SOUTH);
@@ -296,12 +326,26 @@ if (originalIcon != null) {
     formCard.add(btnLogin);
     formCard.add(Box.createVerticalStrut(10));
 
-    // Terms
-    JLabel terms = new JLabel("<html><div style='text-align:center; width:560px;'>By creating an account you agree to the <span style='color:#1996CC;'>Terms &amp; Privacy</span>.</div></html>");
-    terms.setFont(new Font("Roboto", Font.PLAIN, 12));
-    terms.setForeground(new Color(0x666666));
-    terms.setAlignmentX(Component.CENTER_ALIGNMENT);
-    formCard.add(terms);
+    JLabel terms = createLinkLabel(
+    "<html><div style='text-align:center; width:560px;'>By logging in, you agree to the <span style='color:#1996CC;'>Terms & Privacy</span>.</div></html>",
+    () -> {
+        try {
+            File htmlFile = new File("/Users/mogamatyaseenkannemeyer/Documents/CPUT 3rd YEAR/PRT2/StudentTimeTable/src/main/resources/Terms&Privacy.html");
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(htmlFile.toURI());
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Unable to open Terms & Privacy file.");
+        }
+    }
+);
+
+terms.setFont(new Font("Roboto", Font.PLAIN, 12));
+terms.setForeground(new Color(0x666666));
+terms.setAlignmentX(Component.CENTER_ALIGNMENT);
+formCard.add(terms);
+
 
     // Validation
     wireValidation();

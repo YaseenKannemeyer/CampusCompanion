@@ -10,6 +10,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.awt.Desktop;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import mycput.ac.za.studenttimetable.dao.AdminDAO;
 import mycput.ac.za.studenttimetable.domain.AdminDomain;
@@ -183,12 +185,26 @@ topPanel.add(welcome);
     formCard.add(btnSignupLink);
     formCard.add(Box.createVerticalStrut(10));
 
-    // --- Terms ---
-    JLabel terms = new JLabel("<html><div style='text-align:center; width:560px;'>By logging in, you agree to the <span style='color:#1996CC;'>Terms & Privacy</span>.</div></html>");
-    terms.setFont(new Font("Roboto", Font.PLAIN, 12));
-    terms.setForeground(new Color(0x666666));
-    terms.setAlignmentX(Component.CENTER_ALIGNMENT);
-    formCard.add(terms);
+    JLabel terms = createLinkLabel(
+    "<html><div style='text-align:center; width:560px;'>By logging in, you agree to the <span style='color:#1996CC;'>Terms & Privacy</span>.</div></html>",
+    () -> {
+        try {
+            File htmlFile = new File("/Users/mogamatyaseenkannemeyer/Documents/CPUT 3rd YEAR/PRT2/StudentTimeTable/src/main/resources/Terms&Privacy.html");
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(htmlFile.toURI());
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Unable to open Terms & Privacy file.");
+        }
+    }
+);
+
+terms.setFont(new Font("Roboto", Font.PLAIN, 12));
+terms.setForeground(new Color(0x666666));
+terms.setAlignmentX(Component.CENTER_ALIGNMENT);
+formCard.add(terms);
+
 
     wrapper.add(formCard);
     add(wrapper, gbc);

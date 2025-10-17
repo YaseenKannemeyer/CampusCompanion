@@ -51,18 +51,23 @@ add(signupForm);
 
    // ------------------- Sliding Animations -------------------
 public void slideToLogin() {
+    // Reset positions
+    loginForm.setBounds(-getWidth(), 0, getWidth(), getHeight());
+    signupForm.setBounds(0, 0, getWidth(), getHeight());
+    loginForm.setVisible(true);
+    signupForm.setVisible(true);
+    repaint();
+
     Timer timer = new Timer(TIMER_DELAY, null);
     timer.addActionListener(e -> {
         int loginX = loginForm.getX();
         int signupX = signupForm.getX();
 
-        // ✅ When login reaches 0, stop the animation
         if (loginX >= 0) {
             loginForm.setLocation(0, 0);
             signupForm.setLocation(getWidth(), 0);
             ((Timer) e.getSource()).stop();
         } else {
-            // ✅ Move both panels to the right
             loginForm.setLocation(loginX + SLIDE_STEP, 0);
             signupForm.setLocation(signupX + SLIDE_STEP, 0);
         }
@@ -72,26 +77,30 @@ public void slideToLogin() {
 }
 
 public void slideToSignup() {
+    // Reset positions
+    loginForm.setBounds(0, 0, getWidth(), getHeight());
+    signupForm.setBounds(getWidth(), 0, getWidth(), getHeight());
+    loginForm.setVisible(true);
+    signupForm.setVisible(true);
+    repaint();
+
     Timer timer = new Timer(TIMER_DELAY, null);
     timer.addActionListener(e -> {
-        int signupX = signupForm.getX();
         int loginX = loginForm.getX();
+        int signupX = signupForm.getX();
 
-        // ✅ When signup reaches 0, stop the animation
         if (signupX <= 0) {
             signupForm.setLocation(0, 0);
             loginForm.setLocation(-getWidth(), 0);
             ((Timer) e.getSource()).stop();
         } else {
-            // ✅ Move both panels to the left
-            signupForm.setLocation(signupX - SLIDE_STEP, 0);
             loginForm.setLocation(loginX - SLIDE_STEP, 0);
+            signupForm.setLocation(signupX - SLIDE_STEP, 0);
         }
         repaint();
     });
     timer.start();
 }
-
 
     // ======================================================
     // =============== DASHBOARD SCREEN ======================
@@ -225,16 +234,33 @@ public void slideToSignup() {
     // =============== LOGIN PANEL ===========================
     // ======================================================
 
-    public void showLoginPanel(LoginForm loginForm) {
-        getContentPane().removeAll();
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(loginForm, BorderLayout.CENTER);
+    public void showLoginPanel() {
+    getContentPane().removeAll();
+    setLayout(null); // needed for sliding
 
-        // Reset references
-        contentPanel = new JPanel(new BorderLayout());
-        sidebar = null;
+    // Recreate forms
+    this.loginForm = new LoginForm(this, connectionProvider);
+    this.signupForm = new StudentSignupForm(this);
 
-        getContentPane().revalidate();
-        getContentPane().repaint();
-    }
+    // ✅ Set proper starting positions for sliding
+    loginForm.setBounds(0, 0, getWidth(), getHeight());
+    signupForm.setBounds(getWidth(), 0, getWidth(), getHeight());
+
+    // Add both forms
+    add(loginForm);
+    add(signupForm);
+
+    // Make visible
+    loginForm.setVisible(true);
+    signupForm.setVisible(true);
+
+    // Reset references
+    contentPanel = null;
+    sidebar = null;
+
+    revalidate();
+    repaint();
+}
+
+
 }

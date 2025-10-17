@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Companion - Contact Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #D6EEFF;
+            color: #333;
+        }
+
+        a {
+            color: #1996CC;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Header */
+        header {
+            background-color: #FFFFFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header .logo img {
+            height: 50px; /* Adjust as needed */
+        }
+
+        nav a {
+            margin-left: 20px;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: #FFFFFF;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        h1, h2 {
+            color: #1996CC;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-weight: 400;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            margin-bottom: 30px;
+        }
+
+        .contact-info p {
+            margin-bottom: 8px;
+        }
+
+        /* Form Styles */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        input, textarea {
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1em;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-primary {
+            background-color: #E7404A;
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: fit-content;
+        }
+
+        .btn-primary:hover {
+            background-color: #d1383f;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #D6EEFF;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header, main {
+                padding: 20px;
+            }
+            nav a {
+                margin-left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+     <header>
+    <div class="logo">
+        <img src="icons/Logo.png" alt="Campus Companion Logo" style="height:150px;">
+    </div>
+    <nav>
+        <a href="Terms&Privacy.html">Terms & Privacy</a>
+        <a href="Help.html">Help</a>
+        <a href="Contact.html">Contact us</a>
+    </nav>
+</header>
+
+    <main>
+        <div class="card">
+            <h1>Contact Us</h1>
+            <p>If you have questions, feedback, or need assistance with Campus Companion, please see our contact information or fill out the form below.</p>
+
+            <div class="contact-info">
+                <h2>Our Contact Information</h2>
+                <p><strong>Email:</strong> <a href="mailto:support@campuscompanion.com">support@campuscompanion.com</a></p>
+                <p><strong>Phone:</strong> +27 123 456 7890</p>
+                <p><strong>Address:</strong> IT Department, CPUT Campus, Cape Town, South Africa</p>
+            </div>
+
+            <form action="#" method="post">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Your full name" required>
+
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Your email address" required>
+
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" placeholder="Subject of your message" required>
+
+                <label for="message">Message</label>
+                <textarea id="message" name="message" placeholder="Type your message here..." required></textarea>
+
+                <button type="submit" class="btn-primary">Send Message</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2025 Campus Companion. All rights reserved.
+    </footer>
+</body>
+</html>

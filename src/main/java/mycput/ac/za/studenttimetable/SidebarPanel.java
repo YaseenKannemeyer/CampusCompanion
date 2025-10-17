@@ -264,11 +264,13 @@ add(bottomPanel, BorderLayout.SOUTH);
                 int confirm = JOptionPane.showConfirmDialog(topFrame,
                         "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION && topFrame instanceof StudentTimeTable mainFrame) {
-                    Session.setStudent(null, null);
-                    LoginForm loginForm = new LoginForm(mainFrame, connectionProvider);
-                    mainFrame.showLoginPanel(loginForm);
-                    setActiveItem(null);
-                }
+    Session.setStudent(null, null);
+    mainFrame.setExtendedState(JFrame.NORMAL);
+    mainFrame.setSize(1200, 750);
+    LoginForm loginForm = new LoginForm(mainFrame, connectionProvider);
+    mainFrame.showLoginPanel();
+    setActiveItem(null);
+}
             }
         });
 
