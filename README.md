@@ -201,3 +201,85 @@ cd CampusCompanion</code></pre>
                 └── default-compile
 
 ```
+
+---
+<section id="maintenance">
+  <h2>Maintenance & Updates</h2>
+  <p>This section outlines how to maintain, update, and release new versions of the <strong>StudentTimeTable</strong> desktop application. Regular maintenance ensures stability, compatibility, and security for all platforms.</p>
+
+  <h3>1. Pull Latest Changes</h3>
+  <p>Before making updates, pull the latest version of the project from GitHub:</p>
+  <pre><code>git pull origin main</code></pre>
+  <p>This ensures you are working on the most recent codebase.</p>
+
+  <h3>2. Update Maven Dependencies</h3>
+  <p>Use Maven to check for and update dependency versions defined in the <code>pom.xml</code> file:</p>
+  <pre><code>mvn versions:display-dependency-updates</code></pre>
+  <p>To automatically update to the latest stable versions:</p>
+  <pre><code>mvn versions:use-latest-releases</code></pre>
+  <p>After updating, verify that the application still compiles and runs correctly.</p>
+
+  <h3>3. Update Python Dependencies</h3>
+  <p>If you have updated Python packages (e.g., Flask, ChatterBot), update and freeze dependencies:</p>
+  <pre><code>pip install --upgrade flask chatterbot flask_cors
+pip freeze > requirements.txt</code></pre>
+  <p>This ensures future installations use the correct versions.</p>
+
+  <h3>4. Database Maintenance (Apache Derby)</h3>
+  <ul>
+    <li>Backup your Derby database periodically:
+      <pre><code>cp -r db/Project2FinalDB db/backup/Project2FinalDB_$(date +%Y%m%d)</code></pre>
+    </li>
+    <li>Use Derby’s <code>ij</code> tool or SQL scripts to perform schema updates or cleanups as needed.</li>
+    <li>Ensure database versioning is managed during each new release.</li>
+  </ul>
+
+  <h3>5. Rebuild the Application</h3>
+  <p>After updating dependencies or making code changes, rebuild the shaded JAR:</p>
+  <pre><code>mvn clean package</code></pre>
+  <p>This produces an updated JAR file, for example:</p>
+  <pre><code>target/StudentTimeTable-1.0.2-shaded.jar</code></pre>
+
+  <h3>6. Repackage with <code>jpackage</code></h3>
+  <p>Once rebuilt, repackage the new version for all supported platforms (Windows, macOS, Linux) using <code>jpackage</code>:</p>
+  <pre><code>jpackage \
+  --input target/ \
+  --name StudentTimeTable \
+  --main-jar StudentTimeTable-1.0.2-shaded.jar \
+  --main-class mycput.ac.za.studenttimetable.AppLauncher \
+  --icon resources/icons/icon.png \
+  --app-version 1.0.2 \
+  --type dmg</code></pre>
+  <p>Replace <code>--type</code> with <code>exe</code>, <code>dmg</code>, or <code>deb</code> depending on your target OS.</p>
+
+  <h3>7. Tag and Push a New Release</h3>
+  <p>Once you’ve tested the new build, create and push a new version tag on GitHub:</p>
+  <pre><code>git add .
+git commit -m "Release v1.0.2 - UI updates and dependency improvements"
+git tag v1.0.2
+git push origin main --tags</code></pre>
+  <p>This will mark the new version and prepare it for release packaging.</p>
+
+  <h3>8. Publish Release on GitHub</h3>
+  <p>Finally, upload the packaged app (EXE, DMG, or DEB) to your GitHub Releases page:</p>
+  <ol>
+    <li>Go to your repository’s <a href="https://github.com/YaseenKannemeyer/CampusCompanion/releases">Releases</a> section.</li>
+    <li>Click <strong>“Draft a new release”</strong>.</li>
+    <li>Select the new tag (e.g., <code>v1.0.2</code>).</li>
+    <li>Upload your packaged installer(s).</li>
+    <li>Add release notes describing changes, bug fixes, or improvements.</li>
+    <li>Click <strong>“Publish release”</strong>.</li>
+  </ol>
+
+  <h3>9. General Maintenance Tips</h3>
+  <ul>
+    <li>Test major updates on all target platforms before publishing.</li>
+    <li>Keep JDK, Maven, and Python versions in sync with your <code>README</code> prerequisites.</li>
+    <li>Regularly clean your Maven build directory with <code>mvn clean</code> to avoid caching issues.</li>
+    <li>Monitor security advisories for dependencies (e.g., Jackson, OkHttp, Flask).</li>
+    <li>Backup your Derby database before every major release.</li>
+  </ul>
+
+  <p>By following these maintenance steps, the <strong>StudentTimeTable</strong> application remains stable, secure, and up-to-date across all supported operating systems.</p>
+</section>
+
