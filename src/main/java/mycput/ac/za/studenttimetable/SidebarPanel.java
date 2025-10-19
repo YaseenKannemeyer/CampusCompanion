@@ -79,57 +79,57 @@ public class SidebarPanel extends JPanel {
 
         itemsPanel.add(Box.createVerticalGlue());
 
-       // Bottom buttons: Chat and Logout
-JPanel bottomPanel = new JPanel();
-bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
-bottomPanel.setOpaque(false);
+        // Bottom buttons: Chat and Logout
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
+        bottomPanel.setOpaque(false);
 
 // Chat button
-bottomPanel.add(createSidebarItem("Chat", "/icons/chat.png"));
-bottomPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        bottomPanel.add(createSidebarItem("Chat", "/icons/chat.png"));
+        bottomPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
 // Separator between Chat and Logout
-bottomPanel.add(createSeparator());
-bottomPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        bottomPanel.add(createSeparator());
+        bottomPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
 // Logout button
-bottomPanel.add(createLogoutButton());
+        bottomPanel.add(createLogoutButton());
 
-add(itemsPanel, BorderLayout.CENTER);
-add(bottomPanel, BorderLayout.SOUTH);
+        add(itemsPanel, BorderLayout.CENTER);
+        add(bottomPanel, BorderLayout.SOUTH);
 
     }
 
     // ================= INIT CONTENT PANELS =================
     private void initContentPanels(JTable table) {
-    contentPanel.setLayout(new CardLayout());
+        contentPanel.setLayout(new CardLayout());
 
-    dashboardPanel = new DashboardPanel(connectionProvider, null, null);
+        dashboardPanel = new DashboardPanel(connectionProvider, null, null);
 
-    // === Timetable Panel (with Header) ===
-    timetablePanel = new JPanel(new BorderLayout());
-    timetablePanel.setBackground(new Color(0xD6EEFF)); // match style
-    
-    // Header panel — styled like DashboardPanel
-    HeaderBannerPanel header = new HeaderBannerPanel(connectionProvider, currentStudentId);
-    timetablePanel.add(header, BorderLayout.NORTH);
+        // === Timetable Panel (with Header) ===
+        timetablePanel = new JPanel(new BorderLayout());
+        timetablePanel.setBackground(new Color(0xD6EEFF)); // match style
 
-    // Scrollable timetable table
-    JScrollPane scroll = new JScrollPane(table);
-    scroll.setBorder(BorderFactory.createEmptyBorder(10, 15, 15, 15));
-    timetablePanel.add(scroll, BorderLayout.CENTER);
+        // Header panel — styled like DashboardPanel
+        HeaderBannerPanel header = new HeaderBannerPanel(connectionProvider, currentStudentId);
+        timetablePanel.add(header, BorderLayout.NORTH);
 
-    // === Other Panels ===
-    subjectsPanel = new Subjects(connectionProvider, "", "");
-    settingsPanel = new SettingsPanel(connectionProvider);
-    notificationsPanel = new NotificationsPanel(currentStudentId);
+        // Scrollable timetable table
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(BorderFactory.createEmptyBorder(10, 15, 15, 15));
+        timetablePanel.add(scroll, BorderLayout.CENTER);
 
-    contentPanel.add(dashboardPanel, "Dashboard");
-    contentPanel.add(timetablePanel, "Timetable");
-    contentPanel.add(subjectsPanel, "Subjects");
-    contentPanel.add(settingsPanel, "Settings");
-    contentPanel.add(notificationsPanel, "Notifications");
-}
+        // === Other Panels ===
+        subjectsPanel = new Subjects(connectionProvider, "", "");
+        settingsPanel = new SettingsPanel(connectionProvider);
+        notificationsPanel = new NotificationsPanel(currentStudentId);
+
+        contentPanel.add(dashboardPanel, "Dashboard");
+        contentPanel.add(timetablePanel, "Timetable");
+        contentPanel.add(subjectsPanel, "Subjects");
+        contentPanel.add(settingsPanel, "Settings");
+        contentPanel.add(notificationsPanel, "Notifications");
+    }
 
     // ================= SET STUDENT =================
     public void setCurrentStudent(String studentId, String studentGroup) {
@@ -140,26 +140,28 @@ add(bottomPanel, BorderLayout.SOUTH);
             StudentDAO dao = new StudentDAO();
             StudentDomain student = dao.getStudentProfile(studentId);
 
-            if (dashboardPanel != null && student != null)
+            if (dashboardPanel != null && student != null) {
                 dashboardPanel.setStudent(student);
+            }
 
-            if (subjectsPanel != null)
+            if (subjectsPanel != null) {
                 subjectsPanel.setStudent(studentId, studentGroup);
+            }
 
-            if (settingsPanel != null)
+            if (settingsPanel != null) {
                 settingsPanel.setStudent(studentId, studentGroup);
+            }
 
-            if (notificationsPanel != null)
+            if (notificationsPanel != null) {
                 notificationsPanel.setStudent(student);
+            }
             if (timetablePanel != null) {
-    for (Component comp : timetablePanel.getComponents()) {
-        if (comp instanceof HeaderBannerPanel headerPanel) {
-            headerPanel.setStudent(student);
-        }
-    }
-}
-            
-
+                for (Component comp : timetablePanel.getComponents()) {
+                    if (comp instanceof HeaderBannerPanel headerPanel) {
+                        headerPanel.setStudent(student);
+                    }
+                }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -186,7 +188,8 @@ add(bottomPanel, BorderLayout.SOUTH);
                 Image scaled = icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
                 label.setIcon(new ImageIcon(scaled));
                 label.setIconTextGap(10);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         itemPanel.add(label);
@@ -194,14 +197,16 @@ add(bottomPanel, BorderLayout.SOUTH);
         itemPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (itemPanel != activeItemPanel)
+                if (itemPanel != activeItemPanel) {
                     itemPanel.setBackground(SECONDARY_CTA);
+                }
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (itemPanel != activeItemPanel)
+                if (itemPanel != activeItemPanel) {
                     itemPanel.setBackground(PRIMARY_BG);
+                }
             }
 
             @Override
@@ -210,15 +215,37 @@ add(bottomPanel, BorderLayout.SOUTH);
                 renderContent(name);
 
                 if (name.equals("Chat") && layeredPane != null) {
-                    if (chatOverlay == null) {
-                        chatOverlay = new ChatBotPanel();
-                        layeredPane.add(chatOverlay, JLayeredPane.PALETTE_LAYER);
-                        chatOverlay.setLocation(layeredPane.getWidth() - 500, layeredPane.getHeight() - 400);
-                        chatOverlay.setVisible(true);
-                    } else {
-                        chatOverlay.setVisible(!chatOverlay.isVisible());
-                    }
-                }
+    if (chatOverlay == null) {
+        // Initialize chat overlay
+        chatOverlay = new ChatBotPanel();
+
+        // Ensure layeredPane uses null layout for absolute positioning
+        layeredPane.setLayout(null);
+
+        // Set size of chat overlay
+        int chatWidth = 450;   // width of your ChatBotPanel
+        int chatHeight = 550;  // height of your ChatBotPanel
+
+        // Center overlay on the layeredPane
+        int xPos = (layeredPane.getWidth() - chatWidth) / 2;
+        int yPos = (layeredPane.getHeight() - chatHeight) / 2;
+        chatOverlay.setBounds(xPos, yPos, chatWidth, chatHeight);
+
+        // Add overlay to layeredPane at PALETTE_LAYER
+        layeredPane.add(chatOverlay, JLayeredPane.PALETTE_LAYER);
+
+        chatOverlay.setVisible(true);
+    } else {
+        // Toggle visibility
+        chatOverlay.setVisible(!chatOverlay.isVisible());
+    }
+
+    // Refresh layeredPane to make changes visible
+    layeredPane.revalidate();
+    layeredPane.repaint();
+}
+
+
             }
         });
 
@@ -226,12 +253,18 @@ add(bottomPanel, BorderLayout.SOUTH);
     }
 
     private void setActiveItem(MaterialCardPanel newActive) {
-        if (activeItemPanel != null) activeItemPanel.setBackground(PRIMARY_BG);
+        if (activeItemPanel != null) {
+            activeItemPanel.setBackground(PRIMARY_BG);
+        }
         activeItemPanel = newActive;
-        if (activeItemPanel != null) activeItemPanel.setBackground(SECONDARY_CTA);
+        if (activeItemPanel != null) {
+            activeItemPanel.setBackground(SECONDARY_CTA);
+        }
     }
 
-    public void setLayeredPane(JLayeredPane layeredPane) { this.layeredPane = layeredPane; }
+    public void setLayeredPane(JLayeredPane layeredPane) {
+        this.layeredPane = layeredPane;
+    }
 
     public void renderContent(String item) {
         CardLayout cl = (CardLayout) contentPanel.getLayout();
@@ -255,22 +288,28 @@ add(bottomPanel, BorderLayout.SOUTH);
 
         logoutPanel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) { logoutPanel.setBackground(SECONDARY_CTA); }
+            public void mouseEntered(MouseEvent e) {
+                logoutPanel.setBackground(SECONDARY_CTA);
+            }
+
             @Override
-            public void mouseExited(MouseEvent e) { logoutPanel.setBackground(PRIMARY_CTA); }
+            public void mouseExited(MouseEvent e) {
+                logoutPanel.setBackground(PRIMARY_CTA);
+            }
+
             @Override
             public void mouseClicked(MouseEvent e) {
                 JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(SidebarPanel.this);
                 int confirm = JOptionPane.showConfirmDialog(topFrame,
                         "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION && topFrame instanceof StudentTimeTable mainFrame) {
-    Session.setStudent(null, null);
-    mainFrame.setExtendedState(JFrame.NORMAL);
-    mainFrame.setSize(1200, 750);
-    LoginForm loginForm = new LoginForm(mainFrame, connectionProvider);
-    mainFrame.showLoginPanel();
-    setActiveItem(null);
-}
+                    Session.setStudent(null, null);
+                    mainFrame.setExtendedState(JFrame.NORMAL);
+                    mainFrame.setSize(1200, 750);
+                    LoginForm loginForm = new LoginForm(mainFrame, connectionProvider);
+                    mainFrame.showLoginPanel();
+                    setActiveItem(null);
+                }
             }
         });
 
@@ -287,14 +326,23 @@ add(bottomPanel, BorderLayout.SOUTH);
 
     // ================= MATERIAL CARD =================
     private static class MaterialCardPanel extends JPanel {
-        public MaterialCardPanel() { setOpaque(true); setBackground(PRIMARY_BG); }
+
+        public MaterialCardPanel() {
+            setOpaque(true);
+            setBackground(PRIMARY_BG);
+        }
     }
 
     // ================= SIDEBAR ITEM CLASS =================
     private static class SidebarItem {
+
         String name;
         String iconPath;
-        public SidebarItem(String name, String iconPath) { this.name = name; this.iconPath = iconPath; }
+
+        public SidebarItem(String name, String iconPath) {
+            this.name = name;
+            this.iconPath = iconPath;
+        }
     }
 
     // Optional: paint subtle right shadow
@@ -305,7 +353,7 @@ add(bottomPanel, BorderLayout.SOUTH);
         int shadowWidth = 6;
         Color shadowColor = new Color(0, 0, 0, 30);
         GradientPaint gp = new GradientPaint(getWidth() - shadowWidth, 0, shadowColor,
-                                             getWidth(), 0, new Color(0, 0, 0, 0));
+                getWidth(), 0, new Color(0, 0, 0, 0));
         g2.setPaint(gp);
         g2.fillRect(getWidth() - shadowWidth, 0, shadowWidth, getHeight());
         g2.dispose();

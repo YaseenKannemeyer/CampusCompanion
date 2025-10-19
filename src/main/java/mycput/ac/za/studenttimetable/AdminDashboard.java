@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 import mycput.ac.za.studenttimetable.dao.CrudHelper;
@@ -169,6 +171,7 @@ public class AdminDashboard extends JFrame {
         }
     } else if ("StudentID".equalsIgnoreCase(columns[i])) {
         fieldInputs[i] = new JTextField(); // <-- Admin enters manually
+        ((JTextField) fieldInputs[i]).setEditable(true); 
     } else if ("UserID".equalsIgnoreCase(columns[i])) {
         fieldInputs[i] = new JTextField();
         fieldInputs[i].setEnabled(false); // <-- Auto-generated
@@ -250,29 +253,51 @@ public class AdminDashboard extends JFrame {
     });
 
     // === APPLY CRUD LOGIC ===
-    btnApply.addActionListener(e -> {
-        try {
-            String action = (String) cmbAction.getSelectedItem();
-            int row = table.getSelectedRow();
+ btnApply.addActionListener(e -> {
+    try {
+        String action = (String) cmbAction.getSelectedItem();
+        int row = table.getSelectedRow();
 
-            switch (action) {
-                case "Add" -> handleAdd(tableName, fieldInputs,columns, panel);
-                case "Edit" -> {
-                    if (row < 0) { JOptionPane.showMessageDialog(panel, "Select a record to edit.", "Warning", JOptionPane.WARNING_MESSAGE); return; }
-                    handleEdit(tableName, fieldInputs, table, skipSet, keyColumn, row, panel);
+        switch (action) {
+            case "Add" -> handleAdd(tableName, fieldInputs, columns, panel);
+            case "Edit" -> {
+                if (row < 0) {
+                    JOptionPane.showMessageDialog(panel, "Select a record to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
+                    return;
                 }
-                case "Delete" -> {
-                    if (row < 0) { JOptionPane.showMessageDialog(panel, "Select a record to delete.", "Warning", JOptionPane.WARNING_MESSAGE); return; }
-                    CrudHelper.deleteRecord(tableName, keyColumn, table.getValueAt(row, 0).toString());
-                    JOptionPane.showMessageDialog(panel, "Record deleted successfully.");
+                handleEdit(tableName, fieldInputs, table, skipSet, keyColumn, row, panel);
+            }
+            case "Delete" -> {
+                if (row < 0) {
+                    JOptionPane.showMessageDialog(panel, "Select a record to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                CrudHelper.deleteRecord(tableName, keyColumn, table.getValueAt(row, 0).toString());
+                JOptionPane.showMessageDialog(panel, "Record deleted successfully.");
+            }
+        }
+
+        // Refresh table
+        refreshTableSafe(panel, model, tableName, columns);
+
+        // --- Auto-update UserID for next addition ---
+        if ("Add".equals(action)) {
+            for (int i = 0; i < columns.length; i++) {
+                if ("UserID".equalsIgnoreCase(columns[i]) && fieldInputs[i] instanceof JTextField) {
+                    try {
+                        ((JTextField) fieldInputs[i]).setText(CrudHelper.getNextUserId());
+                    } catch (SQLException ex) {
+                        ((JTextField) fieldInputs[i]).setText("");
+                    }
                 }
             }
-
-            refreshTableSafe(panel, model, tableName, columns);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(panel, "DB Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-    });
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(panel, "DB Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+});
+
 
     // === SEARCH ===
     TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
@@ -336,84 +361,109 @@ private String getFieldValue(JComponent[] inputs, String[] columns, String colum
 
 // --- SAFE ADD HANDLER ---
 private void handleAdd(String tableName, JComponent[] fieldInputs, String[] columns, JPanel panel) throws SQLException {
-    if ("Student".equalsIgnoreCase(tableName)) {
-    String studentId = ((JTextField) fieldInputs[0]).getText(); // Manual input
-    String userId = ((JTextField) fieldInputs[1]).getText();    // Auto-generated
-    String groupId = ((JComboBox<?>) fieldInputs[2]).getSelectedItem().toString();
-    String firstName = ((JTextField) fieldInputs[3]).getText();
-    String lastName = ((JTextField) fieldInputs[4]).getText();
-    String phone = ((JTextField) fieldInputs[5]).getText();
-    String email = ((JTextField) fieldInputs[6]).getText();
-    String password = JOptionPane.showInputDialog(panel, "Enter password for new student:");
+    // --- Grab the values from the form ---
+    String userId = getFieldValue(fieldInputs, columns, "UserID");
+    String email = getFieldValue(fieldInputs, columns, "Email");
+    String passwordHash = getFieldValue(fieldInputs, columns, "PasswordHash");
+    String role = getFieldValue(fieldInputs, columns, "Role");
 
-    // Insert into UserAccount
-    CrudHelper.insertRecord("UserAccount",
-            new String[]{"UserID", "Email", "PasswordHash", "Role"},
-            new String[]{userId, email, password, "STUDENT"});
+    if (role == null || role.trim().isEmpty()) {
+        JOptionPane.showMessageDialog(panel, "Role is required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-    // Insert into Student
-    CrudHelper.insertRecord("Student",
-            new String[]{ "StudentID", "UserID", "GroupID", "FirstName", "LastName", "PhoneNumber", "Email"},
-            new String[]{studentId, userId, groupId, firstName, lastName, phone, email});
+    // =======================================================
+    // 🧍 STUDENT
+    // =======================================================
+    if ("STUDENT".equalsIgnoreCase(role)) {
+        // Prompt for StudentID
+        String studentId = JOptionPane.showInputDialog(panel, "Enter StudentID (e.g., STU001):");
+        if (studentId == null || studentId.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(panel, "StudentID is required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-    JOptionPane.showMessageDialog(panel, "Student added successfully!\nStudentID: " + studentId + "\nUserID: " + userId);
-}
+        // Year → Group mapping
+        Map<String, String[]> yearToGroups = new HashMap<>();
+        yearToGroups.put("First year", new String[]{"1A","1B","1C","1D","1E","1F","1G","1H","1I","1J","1K","1L","1M","1N","1O","1P"});
+        yearToGroups.put("Second year", new String[]{"2A","2B","2C","2D","2E","2F","2G","2H","2I","2J","2K"});
+        yearToGroups.put("Third year", new String[]{"3A","3B","3C","3D","3E","3F","3G","3H","3I","3J","3K"});
 
- else if ("Admin".equalsIgnoreCase(tableName)) {
-        String userId = CrudHelper.getNextUserId();
-        String adminId = CrudHelper.getNextAdminId();
-        String firstName = getFieldValue(fieldInputs, columns, "FirstName");
-        String lastName = getFieldValue(fieldInputs, columns, "LastName");
-        String phone = getFieldValue(fieldInputs, columns, "PhoneNumber");
-        String password = JOptionPane.showInputDialog(panel, "Enter password for new admin:");
+        // Year selection
+        String[] years = {"Select year of study", "First year", "Second year", "Third year"};
+        String selectedYear = (String) JOptionPane.showInputDialog(panel, "Select Year:", "Year Selection",
+                JOptionPane.PLAIN_MESSAGE, null, years, years[0]);
+        if (selectedYear == null || selectedYear.equals("Select year of study")) {
+            JOptionPane.showMessageDialog(panel, "You must select a year.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        // Insert into UserAccount
+        // Group selection
+        String[] groups = yearToGroups.getOrDefault(selectedYear, new String[]{});
+        String selectedGroup = (String) JOptionPane.showInputDialog(panel, "Select Group:", "Group Selection",
+                JOptionPane.PLAIN_MESSAGE, null, groups, groups.length > 0 ? groups[0] : null);
+        if (selectedGroup == null || selectedGroup.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(panel, "You must select a group.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Student basic info
+        String firstName = JOptionPane.showInputDialog(panel, "Enter student's First Name:");
+        String lastName = JOptionPane.showInputDialog(panel, "Enter student's Last Name:");
+        String phone = JOptionPane.showInputDialog(panel, "Enter student's Phone Number:");
+
+        if (firstName == null || lastName == null || phone == null ||
+            firstName.trim().isEmpty() || lastName.trim().isEmpty() || phone.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(panel, "All fields are required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Insert into UserAccount (reuse values from form)
         CrudHelper.insertRecord("UserAccount",
                 new String[]{"UserID", "Email", "PasswordHash", "Role"},
-                new String[]{userId, "", password, "ADMIN"}); // Email optional for Admin
+                new String[]{userId, email, passwordHash, role.toUpperCase()});
+
+        // Insert into Student
+        CrudHelper.insertRecord("Student",
+                new String[]{"StudentID", "UserID", "GroupID", "FirstName", "LastName", "PhoneNumber", "Email"},
+        new String[]{studentId, userId, selectedGroup, firstName, lastName, phone, email});
+
+        JOptionPane.showMessageDialog(panel, "✅ Student successfully added!\nStudentID: " + studentId + "\nUserID: " + userId + "\nGroupID: " + selectedGroup, "Success", JOptionPane.INFORMATION_MESSAGE);
+
+    } 
+    // =======================================================
+    // 🧑‍💼 ADMIN
+    // =======================================================
+    else if ("ADMIN".equalsIgnoreCase(role)) {
+        // Admin basic info
+        String firstName = JOptionPane.showInputDialog(panel, "Enter Admin's First Name:");
+        String lastName = JOptionPane.showInputDialog(panel, "Enter Admin's Last Name:");
+        String phone = JOptionPane.showInputDialog(panel, "Enter Admin's Phone Number:");
+
+        if (firstName == null || lastName == null || phone == null ||
+            firstName.trim().isEmpty() || lastName.trim().isEmpty() || phone.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(panel, "All fields are required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Insert into UserAccount (reuse form values)
+        CrudHelper.insertRecord("UserAccount",
+                new String[]{"UserID", "Email", "PasswordHash", "Role"},
+                new String[]{userId, email, passwordHash, role.toUpperCase()});
 
         // Insert into Admin
+        String adminId = CrudHelper.getNextAdminId();
         CrudHelper.insertRecord("Admin",
                 new String[]{"AdminID", "UserID", "FirstName", "LastName", "PhoneNumber"},
                 new String[]{adminId, userId, firstName, lastName, phone});
 
-        JOptionPane.showMessageDialog(panel, "Admin added successfully! UserID: " + userId + ", AdminID: " + adminId);
-
-    } else if ("UserAccount".equalsIgnoreCase(tableName)) {
-        String userId = CrudHelper.getNextUserId();
-        String email = getFieldValue(fieldInputs, columns, "Email");
-        String password = getFieldValue(fieldInputs, columns, "PasswordHash");
-        String role = getFieldValue(fieldInputs, columns, "Role");
-
-        // Insert into UserAccount
-        CrudHelper.insertRecord("UserAccount",
-                new String[]{"UserID", "Email", "PasswordHash", "Role"},
-                new String[]{userId, email, password, role});
-
-        if ("STUDENT".equalsIgnoreCase(role)) {
-            String groupId = getFieldValue(fieldInputs, columns, "GroupID");
-            String firstName = getFieldValue(fieldInputs, columns, "FirstName");
-            String lastName = getFieldValue(fieldInputs, columns, "LastName");
-            String phone = getFieldValue(fieldInputs, columns, "PhoneNumber");
-
-            CrudHelper.insertRecord("Student",
-                    new String[]{"UserID", "GroupID", "FirstName", "LastName", "PhoneNumber", "Email"},
-                    new String[]{userId, groupId, firstName, lastName, phone, email});
-
-        } else if ("ADMIN".equalsIgnoreCase(role)) {
-            String adminId = CrudHelper.getNextAdminId();
-            String firstName = getFieldValue(fieldInputs, columns, "FirstName");
-            String lastName = getFieldValue(fieldInputs, columns, "LastName");
-            String phone = getFieldValue(fieldInputs, columns, "PhoneNumber");
-
-            CrudHelper.insertRecord("Admin",
-                    new String[]{"AdminID", "UserID", "FirstName", "LastName", "PhoneNumber"},
-                    new String[]{adminId, userId, firstName, lastName, phone});
-        }
-
-        JOptionPane.showMessageDialog(panel, "User added successfully! UserID: " + userId);
+        JOptionPane.showMessageDialog(panel, "✅ Admin successfully added!\nAdminID: " + adminId + "\nUserID: " + userId, "Success", JOptionPane.INFORMATION_MESSAGE);
     }
 }
+
+
+
+
 
 
 // --- EDIT HANDLER ---

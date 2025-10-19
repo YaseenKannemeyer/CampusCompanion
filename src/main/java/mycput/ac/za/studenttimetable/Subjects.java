@@ -54,84 +54,118 @@ public class Subjects extends JPanel {
     }
 
     // ---------------- UI ------------------------
-    private void initUI() {
-        // Header
-        headerBanner = new HeaderBannerPanel(connectionProvider, studentId);
-        add(headerBanner, BorderLayout.NORTH);
+private void initUI() {
+    // ===== HEADER =====
+    headerBanner = new HeaderBannerPanel(connectionProvider, studentId);
+    add(headerBanner, BorderLayout.NORTH);
 
-        // Card
-ModernCard card = new ModernCard(Color.decode("#D6EEFF"));
-        card.setLayout(new BorderLayout());
-        card.setBorder(new EmptyBorder(30, 30, 30, 30));
+    // ===== CARD CONTAINER =====
+    ModernCard card = new ModernCard(Color.decode("#D6EEFF"));
+    card.setLayout(new BorderLayout());
+    card.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // Title block
-        JLabel hTitle = new JLabel("Subject Grade Calculator");
-        hTitle.setFont(getRoboto(24f, Font.BOLD));
-        hTitle.setForeground(CTA_SECONDARY);
+    // ===== TITLE & SUBTITLE =====
+    JLabel hTitle = new JLabel("Subject Grade Calculator");
+    hTitle.setFont(getRoboto(24f, Font.BOLD));
+    hTitle.setForeground(CTA_SECONDARY);
 
-        JLabel hSub = new JLabel("Edit term marks and calculate final grades instantly.");
-        hSub.setFont(getRoboto(14f, Font.PLAIN));
-        hSub.setForeground(new Color(80, 80, 80));
+    JLabel hSub = new JLabel("Edit term marks and calculate final grades instantly.");
+    hSub.setFont(getRoboto(14f, Font.PLAIN));
+    hSub.setForeground(new Color(80, 80, 80));
 
-        JPanel titleBlock = new JPanel();
-        titleBlock.setOpaque(false);
-        titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
-        titleBlock.add(hTitle);
-        titleBlock.add(Box.createVerticalStrut(6));
-        titleBlock.add(hSub);
-        card.add(titleBlock, BorderLayout.NORTH);
+    // ===== CREATE MODEL & TABLE FIRST =====
+    model = createModel(new String[]{"Subject", "Code", "Final Grade"});
+    table = new JTable(model);
+    table.setRowHeight(46);
+    table.setFont(getRoboto(13f, Font.PLAIN));
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new Dimension(0, 0));
+    table.setFillsViewportHeight(true);
+    table.setSelectionBackground(new Color(220, 235, 251));
+    table.setSelectionForeground(Color.BLACK);
 
-        // Table
-        model = createModel(new String[]{"Subject", "Code", "Final Grade"});
-        table = new JTable(model);
-        table.setRowHeight(46);
-        table.setFont(getRoboto(13f, Font.PLAIN));
-        table.setShowGrid(false);
-        table.setIntercellSpacing(new Dimension(0, 0));
-        table.setFillsViewportHeight(true);
-        table.setSelectionBackground(new Color(220, 235, 251));
-        table.setSelectionForeground(Color.BLACK);
+    JTableHeader th = table.getTableHeader();
+    th.setDefaultRenderer(new HeaderRenderer());
+    th.setReorderingAllowed(false);
+    th.setPreferredSize(new Dimension(th.getPreferredSize().width, 40));
 
-        JTableHeader th = table.getTableHeader();
-        th.setDefaultRenderer(new HeaderRenderer());
-        th.setReorderingAllowed(false);
-        th.setPreferredSize(new Dimension(th.getPreferredSize().width, 40));
+    table.setDefaultRenderer(Number.class, new DefaultTableCellRenderer() {{
+        setHorizontalAlignment(CENTER);
+    }});
+    table.setDefaultRenderer(Object.class, new TableCellRenderer());
+    table.setDefaultEditor(Number.class, new NumericEditor());
+    table.getColumnModel()
+         .getColumn(table.getColumnCount() - 1)
+         .setCellRenderer(new FinalGradeRenderer());
 
-        table.setDefaultRenderer(Number.class, new DefaultTableCellRenderer() {{
-            setHorizontalAlignment(CENTER);
-        }});
-        table.setDefaultRenderer(Object.class, new TableCellRenderer());
-        table.setDefaultEditor(Number.class, new NumericEditor());
-        table.getColumnModel().getColumn(table.getColumnCount() - 1).setCellRenderer(new FinalGradeRenderer());
+    JScrollPane sp = new JScrollPane(table);
+    sp.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+    sp.setPreferredSize(new Dimension(1000, 550));
+    sp.getVerticalScrollBar().setUI(new ModernScrollBarUI());
 
-        JScrollPane sp = new JScrollPane(table);
-        sp.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
-        sp.setPreferredSize(new Dimension(1000, 550));
-        sp.getVerticalScrollBar().setUI(new ModernScrollBarUI());
-        card.add(sp, BorderLayout.CENTER);
+    // ===== SEARCH FIELD =====
+    JTextField searchField = new JTextField(20);
+    searchField.putClientProperty("JTextField.placeholderText", "Search subjects...");
+    searchField.setFont(getRoboto(13f, Font.PLAIN));
+    searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(180, 180, 180), 1, true),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+    ));
+    searchField.setMaximumSize(new Dimension(250, 36));
 
-        // Buttons
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 8));
-controls.setOpaque(false);
-controls.add(createStyledButton("Copy Grades", e -> copyToClipboard()));
-controls.add(createStyledButton("Export CSV", e -> exportCSV()));
-controls.add(createStyledButton("Export SVG", e -> exportSVG()));
-controls.add(createStyledButton("Calculate", e -> calculateAll()));
-card.add(controls, BorderLayout.SOUTH);
+    // ===== SORTER + FILTER =====
+    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+    table.setRowSorter(sorter);
 
+    searchField.getDocument().addDocumentListener(new DocumentListener() {
+        private void update() {
+            String text = searchField.getText().trim();
+            if (text.isEmpty()) sorter.setRowFilter(null);
+            else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
+        }
+        @Override public void insertUpdate(DocumentEvent e) { update(); }
+        @Override public void removeUpdate(DocumentEvent e) { update(); }
+        @Override public void changedUpdate(DocumentEvent e) { update(); }
+    });
 
-        // Wrap card
-        JPanel centerWrap = new JPanel(new GridBagLayout());
-        centerWrap.setOpaque(false);
-        centerWrap.add(card, new GridBagConstraints() {{
-            fill = GridBagConstraints.BOTH;
-            weightx = 1.0;
-            weighty = 1.0;
-        }});
-        add(centerWrap, BorderLayout.CENTER);
+    // ===== TITLE BLOCK =====
+    JPanel titleTop = new JPanel(new BorderLayout());
+    titleTop.setOpaque(false);
+    titleTop.add(hTitle, BorderLayout.WEST);
+    titleTop.add(searchField, BorderLayout.EAST);
 
-        card.pulse();
-    }
+    JPanel titleBlock = new JPanel();
+    titleBlock.setOpaque(false);
+    titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
+    titleBlock.add(titleTop);
+    titleBlock.add(Box.createVerticalStrut(6));
+    titleBlock.add(hSub);
+
+    card.add(titleBlock, BorderLayout.NORTH);
+    card.add(sp, BorderLayout.CENTER);
+
+    // ===== BUTTONS =====
+    JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 8));
+    controls.setOpaque(false);
+    controls.add(createStyledButton("Copy Grades", e -> copyToClipboard()));
+    controls.add(createStyledButton("Export CSV", e -> exportCSV()));
+    controls.add(createStyledButton("Export SVG", e -> exportSVG()));
+    controls.add(createStyledButton("Calculate", e -> calculateAll()));
+    card.add(controls, BorderLayout.SOUTH);
+
+    // ===== CENTER WRAPPER =====
+    JPanel centerWrap = new JPanel(new GridBagLayout());
+    centerWrap.setOpaque(false);
+    centerWrap.add(card, new GridBagConstraints() {{
+        fill = GridBagConstraints.BOTH;
+        weightx = 1.0;
+        weighty = 1.0;
+    }});
+
+    add(centerWrap, BorderLayout.CENTER);
+    card.pulse();
+}
+
 
     private JButton createStyledButton(String text, java.awt.event.ActionListener listener) {
     JButton btn = new JButton(text);
@@ -332,15 +366,27 @@ card.add(controls, BorderLayout.SOUTH);
 
             Map<Integer, Double> m = marks.getOrDefault(s.code, Collections.emptyMap());
             for (String lbl : dynamicAssessmentLabels) {
-                Integer col = labelToColumnIndex.get(lbl);
-                if (col == null) continue;
-                Integer tid = subjectLabelTermIds.getOrDefault(s.code, Collections.emptyMap()).get(lbl);
-                row[col] = (tid != null) ? m.getOrDefault(tid, null) : null;
-            }
+    Integer col = labelToColumnIndex.get(lbl);
+    if (col == null) continue;
+    Integer tid = subjectLabelTermIds.getOrDefault(s.code, Collections.emptyMap()).get(lbl);
+    Double val = (tid != null) ? m.getOrDefault(tid, 0.0) : 0.0;
 
-            model.addRow(row);
-            int newRow = model.getRowCount() - 1;
-            model.setValueAt(computeFinalForRow(newRow, s.code), newRow, row.length - 1);
+    // Default 0 for 3rd and 4th terms
+    if (lbl.toLowerCase().contains("term 3") || lbl.toLowerCase().contains("term 4")) {
+        val = 0.0;
+    }
+
+    row[col] = Double.valueOf(gradeFmt.format(val));
+}
+
+
+           model.addRow(row);
+int newRow = model.getRowCount() - 1;
+
+// --- Compute and format final grade ---
+double finalVal = computeFinalForRow(newRow, s.code);
+model.setValueAt(Double.valueOf(gradeFmt.format(finalVal)), newRow, row.length - 1);
+
         }
     }
 

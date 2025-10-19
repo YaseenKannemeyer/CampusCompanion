@@ -142,26 +142,26 @@ public void slideToSignup() {
     // =============== TIMETABLE TABLE =======================
     // ======================================================
 
-    private JTable createTimetableTable() {
+   private JTable createTimetableTable() {
     // ===== Columns and Data =====
     String[] columns = {"PER", "TIME FROM - TO", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"};
     String[][] data = {
-            {"1", "8:30 - 9:10", "ISA260S","ADP262S", "","", ""},
-            {"2", "9:15 - 9:55", "ISA260S","ADP262S", "", "", ""},
-            {"3", "10:00 - 10:40", "ADP262S",  "",  "", "", ""},
-            {"4", "10:45 - 11:25", "ADP262S", "",  "PRC262S", "", ""},
-            {"5", "11:30 - 12:10", "MAF262S", "", "ADP262S","", "ISA260S"},
-            {"6", "12:15 - 12:55", "MAF262S", "PRC262S",  "ADP262S", "", "ISA260S"},
+            {"1", "8:30 - 9:10", "ISA260S\nKS - VA2","ADP262S\nKN - 1.3", "", "", ""},
+            {"2", "9:15 - 9:55", "ISA260S\nKS - VA2","ADP262S\nKN - 1.3", "", "", ""},
+            {"3", "10:00 - 10:40", "ADP262S\nIM - VA2", "", "", "", ""},
+            {"4", "10:45 - 11:25", "ADP262S\nIM - VA2", "", "PRC262S\nNW - 1.24", "", ""},
+            {"5", "11:30 - 12:10", "MAF262S\nTC - VA2", "", "ADP262S\nKN - 1.15", "", "ISA260S\nEZ - VA2"},
+            {"6", "12:15 - 12:55", "MAF262S\nTC - VA2", "PRC262S\nNW - 1.19", "ADP262S\nKN - 1.15", "", "ISA260S\nEZ - VA2"},
             {"", "13:00 - 13:45", "L", "U", "N", "C", "H"},
-            {"7", "13:45 - 14:25", "CNF262S","PRT262S","INM262S","ICE262S", ""},
-            {"8", "14:30 - 15:10", "CNF262S","PRT262S","INM262S","ICE262S", ""},
-            {"9", "15:15 - 15:55", "INM262S", "", "", "", ""},
+            {"7", "13:45 - 14:25", "CNF262S\nRB2 - VA2","PRT262S\nRB - 1.24","INM262S\nAA - 1.13","ICE262S\nMM - 1.29", ""},
+            {"8", "14:30 - 15:10", "CNF262S\nRB2 - VA2","PRT262S\nRB - 1.24","INM262S\nAA - 1.13","ICE262S\nMM - 1.29", ""},
+            {"9", "15:15 - 15:55", "INM262S\nAA - VA2", "", "", "", ""},
             {"10", "16:00 - 16:40", "", "", "", "", ""},
             {"11", "16:45 - 17:25", "", "", "", "", ""},
             {"12", "17:30 - 18:55", "", "", "", "", ""}
-
     };
 
+    // ===== Table Model =====
     DefaultTableModel model = new DefaultTableModel(data, columns) {
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -170,18 +170,40 @@ public void slideToSignup() {
     };
 
     JTable table = new JTable(model) {
+        // ===== Multi-line Cell Renderer =====
         @Override
         public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
             Component c = super.prepareRenderer(renderer, row, column);
             if (!isRowSelected(row)) {
-                c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(0xF8FBFF)); // soft contrast
+                c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(0xF8FBFF));
             } else {
-                c.setBackground(new Color(0xD6EEFF)); // primary highlight
+                c.setBackground(new Color(0xD6EEFF));
             }
             c.setForeground(Color.BLACK);
             return c;
         }
     };
+
+    // ===== Multi-line Text Renderer =====
+    DefaultTableCellRenderer multiLineRenderer = new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            JTextArea textArea = new JTextArea();
+            textArea.setText(value != null ? value.toString() : "");
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+            textArea.setOpaque(true);
+            textArea.setFont(table.getFont());
+            textArea.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+            textArea.setBackground(isSelected ? table.getSelectionBackground() :
+                    (row % 2 == 0 ? Color.WHITE : new Color(0xF8FBFF)));
+            textArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            return textArea;
+        }
+    };
+    table.setDefaultRenderer(Object.class, multiLineRenderer);
 
     // ===== Table Appearance =====
     table.setRowHeight(45);
@@ -192,13 +214,13 @@ public void slideToSignup() {
     table.setShowVerticalLines(false);
     table.setIntercellSpacing(new Dimension(0, 0));
     table.setFillsViewportHeight(true);
-    table.setSelectionBackground(new Color(0xE7404A)); // red CTA for selection
+    table.setSelectionBackground(new Color(0xE7404A));
     table.setSelectionForeground(Color.WHITE);
     table.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     // ===== Table Header Styling =====
     JTableHeader header = table.getTableHeader();
-    header.setBackground(new Color(0x1996CC)); // blue accent
+    header.setBackground(new Color(0x1996CC));
     header.setForeground(Color.WHITE);
     header.setFont(new Font("Roboto", Font.BOLD, 15));
     header.setOpaque(true);
@@ -206,29 +228,36 @@ public void slideToSignup() {
     ((DefaultTableCellRenderer) header.getDefaultRenderer())
             .setHorizontalAlignment(SwingConstants.CENTER);
 
-    // ===== Center Alignment for All Cells =====
+    // ===== Center Alignment for PER and TIME Columns =====
     DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
     centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-    table.setDefaultRenderer(Object.class, centerRenderer);
+    table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+    table.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 
-    // ===== Scroll Pane Styling (Material Card Look) =====
+    // ===== Adjust row heights dynamically =====
+    for (int row = 0; row < table.getRowCount(); row++) {
+        int maxHeight = table.getRowHeight();
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            Component comp = table.prepareRenderer(table.getCellRenderer(row, column), row, column);
+            maxHeight = Math.max(comp.getPreferredSize().height, maxHeight);
+        }
+        table.setRowHeight(row, maxHeight);
+    }
+
+    // ===== Scroll Pane Styling (Card Look) =====
     JScrollPane scrollPane = new JScrollPane(table);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     scrollPane.getViewport().setBackground(new Color(0xFFFFFF));
-
-    // Rounded corners with subtle shadow (card effect)
     scrollPane.setViewportBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(0xE0E0E0), 1, true),
             BorderFactory.createEmptyBorder(10, 10, 10, 10)
     ));
-
-    // Add soft drop shadow under the card
     scrollPane.setBackground(new Color(0xFFFFFF));
     scrollPane.setOpaque(true);
 
-    // ===== Return the table wrapped in a scroll pane =====
     return table;
 }
+
 
     // ======================================================
     // =============== LOGIN PANEL ===========================
