@@ -3,21 +3,34 @@ package mycput.ac.za.studenttimetable.connection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.io.File;
 
 public class DBConnection {
 
-    private static final String DB_PATH = "/Users/mogamatyaseenkannemeyer/Documents/Derby/Project2FinalDB";
+    // Relative path to the database folder
+    private static final String DB_FOLDER = "db";
+    private static final String DB_NAME = "Project2FinalDB";
     private static final String USERNAME = "Project2FinalDB";  // your DB username
     private static final String PASSWORD = "Project2FinalDB";  // your DB password
 
     public static Connection derbyConnection() throws SQLException {
-        // Tell Derby where your databases are stored
-        System.setProperty("derby.system.home", "/Users/mogamatyaseenkannemeyer/Documents/Derby");
+        try {
+            // Get current working directory dynamically
+            String appDir = new File(".").getCanonicalPath();
 
-        // Embedded connection (no network port)
-        String url = "jdbc:derby:" + DB_PATH + ";create=false";
+            // Full path to the database
+            String dbPath = appDir + File.separator + DB_FOLDER + File.separator + DB_NAME;
 
-        return DriverManager.getConnection(url, USERNAME, PASSWORD);
+            // Set Derby system home to the db folder
+            System.setProperty("derby.system.home", appDir + File.separator + DB_FOLDER);
+
+            // Embedded connection (no network port)
+            String url = "jdbc:derby:" + dbPath + ";create=false";
+
+            return DriverManager.getConnection(url, USERNAME, PASSWORD);
+        } catch (Exception e) {
+            throw new SQLException("Failed to connect to Derby database", e);
+        }
     }
 
     public static void shutdown() {

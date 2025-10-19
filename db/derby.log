@@ -1,0 +1,19 @@
+----------------------------------------------------------------
+Sun Oct 19 11:56:36 SAST 2025:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0199-fbe6-4432-ffffab2ead11 
+on database directory /Users/mogamatyaseenkannemeyer/Documents/CPUT 3rd YEAR/PRT2/StudentTimeTable/db/Project2FinalDB with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@1369b299 
+Loaded from file:/Users/mogamatyaseenkannemeyer/Documents/CPUT%203rd%20YEAR/PRT2/StudentTimeTable/target/StudentTimeTable-1.0.1-SNAPSHOT-shaded.jar
+java.vendor=Oracle Corporation
+java.runtime.version=24+36-3646
+user.dir=/Users/mogamatyaseenkannemeyer/Documents/CPUT 3rd YEAR/PRT2/StudentTimeTable
+os.name=Mac OS X
+os.arch=aarch64
+os.version=26.0.1
+derby.system.home=/Users/mogamatyaseenkannemeyer/Documents/CPUT 3rd YEAR/PRT2/StudentTimeTable/db
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Sun Oct 19 11:56:48 SAST 2025: Shutting down Derby engine
+----------------------------------------------------------------
+Sun Oct 19 11:56:48 SAST 2025:
+Shutting down instance a816c00e-0199-fbe6-4432-ffffab2ead11 on database directory /Users/mogamatyaseenkannemeyer/Documents/CPUT 3rd YEAR/PRT2/StudentTimeTable/db/Project2FinalDB with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@1369b299 
+----------------------------------------------------------------
