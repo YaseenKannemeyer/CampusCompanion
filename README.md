@@ -66,12 +66,7 @@ pip install flask_cors==3.2.2</code></pre>
 
   <p>These packages power the chatbot server embedded in the application.</p>
 
-  <h3>5. Optional Tools</h3>
-  <ul>
-    <li>Git – Version control system: <a href="https://git-scm.com/downloads">Download Git</a></li>
-    <li>Homebrew (macOS) – Package manager: <a href="https://brew.sh/">Install Homebrew</a></li>
-    <li>Android Studio (if building/running Android version): <a href="https://developer.android.com/studio">Download Android Studio</a></li>
-  </ul>
+ 
 </section>
 
 
