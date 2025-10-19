@@ -154,9 +154,6 @@ cd CampusCompanion</code></pre>
 ---
 ## 🗂 Project Structure
 ```graphql
-Copy
-Edit
-.
 ├── db
 │   └── Project2FinalDB
 │       ├── log
