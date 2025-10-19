@@ -150,3 +150,57 @@ cd CampusCompanion</code></pre>
     <li>For Linux, DEB or RPM packages can be installed via package manager, creating a desktop entry and icon.</li>
   </ul>
 </section>
+
+---
+## 🗂 Project Structure
+```graphql
+Copy
+Edit
+.
+├── db
+│   └── Project2FinalDB
+│       ├── log
+│       ├── seg0
+│       └── tmp
+├── src
+│   └── main
+│       ├── java
+│       │   ├── fonts
+│       │   │   └── Poppins
+│       │   └── mycput
+│       │       └── ac
+│       │           └── za
+│       │               ├── openaiclient
+│       │               └── studenttimetable
+│       │                   ├── connection
+│       │                   ├── dao
+│       │                   ├── domain
+│       │                   └── resources
+│       │                       ├── icons
+│       │                       └── Poppins
+│       └── resources
+│           ├── icons
+│           ├── Poppins
+│           └── Vid
+└── target
+    ├── classes
+    │   ├── icons
+    │   ├── mycput
+    │   │   └── ac
+    │   │       └── za
+    │   │           ├── openaiclient
+    │   │           └── studenttimetable
+    │   │               ├── connection
+    │   │               ├── dao
+    │   │               └── domain
+    │   ├── Poppins
+    │   └── Vid
+    ├── generated-sources
+    │   └── annotations
+    ├── maven-archiver
+    └── maven-status
+        └── maven-compiler-plugin
+            └── compile
+                └── default-compile
+
+```
