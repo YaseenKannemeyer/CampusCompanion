@@ -94,48 +94,53 @@ cd CampusCompanion</code></pre>
 
   <h3>2. Package for Windows</h3>
   <p>Use <code>jpackage</code> to create a Windows installer or EXE:</p>
-  <pre><code>jpackage \
-  --type exe \
-  --name "CampusCompanion" \
-  --app-version 1.0.1 \
-  --input target \
-  --main-jar StudentTimeTable-1.0.1-SNAPSHOT-shaded.jar \
-  --main-class mycput.ac.za.studenttimetable.AppLauncher \
-  --icon src/main/resources/icons/StudentIcon.ico \
-  --java-options "--enable-preview" \
-  --vendor "CPUT" \
-  --copyright "CPUT"
+  <pre><code>jpackage ^
+  --type msi ^
+  --name "StudentTimeTable" ^
+  --app-version 1.0.1 ^
+  --input target ^
+  --main-jar StudentTimeTable-1.0.1-SNAPSHOT-shaded.jar ^
+  --main-class mycput.ac.za.studenttimetable.AppLauncher ^
+  --icon src/main/resources/icons/StudentIcon.ico ^
+  --java-options "--enable-preview" ^
+  --resource-dir target/classes ^
+  --vendor "CPUT" ^
+  --copyright "© 2025 CPUT"
+
 </code></pre>
   <p>This will generate an EXE installer that includes the embedded JRE and all dependencies.</p>
 
   <h3>3. Package for macOS</h3>
   <p>Create a DMG or app bundle for macOS:</p>
-  <pre><code>jpackage \
+  <pre><code> jpackage \
   --type dmg \
-  --name "StudentTimeTable" \
+  --name "CampusCompanion" \
   --app-version 1.0.1 \
   --input target \
   --main-jar StudentTimeTable-1.0.1-SNAPSHOT-shaded.jar \
   --main-class mycput.ac.za.studenttimetable.AppLauncher \
   --icon src/main/resources/icons/StudentIcon.icns \
   --java-options "--enable-preview" \
+  --resource-dir target/classes \
   --vendor "CPUT" \
-  --copyright "CPUT"</code></pre>
+  --copyright "© 2025 CPUT"</code></pre>
   <p>The resulting DMG or .app bundle can be distributed to macOS users without requiring a separate Java installation.</p>
 
   <h3>4. Package for Linux</h3>
   <p>Create a Linux installer (e.g., DEB or RPM) or AppImage:</p>
   <pre><code>jpackage \
   --type deb \
-  --name "CampusCompanion" \
+  --name "StudentTimeTable" \
   --app-version 1.0.1 \
   --input target \
   --main-jar StudentTimeTable-1.0.1-SNAPSHOT-shaded.jar \
   --main-class mycput.ac.za.studenttimetable.AppLauncher \
   --icon src/main/resources/icons/StudentIcon.png \
   --java-options "--enable-preview" \
+  --resource-dir target/classes \
   --vendor "CPUT" \
-  --copyright "CPUT"
+  --copyright "© 2025 CPUT"
+
 </code></pre>
   <p>Replace <code>--type deb</code> with <code>rpm</code> for RPM-based distributions (Fedora, CentOS) or <code>app-image</code> for a universal AppImage.</p>
 
